@@ -33,14 +33,18 @@ class ActualRound:
         screen.blit(self.score_txt, (500,50))
 
     def update(self, keys):
+
         for note in self.notes_played:
             note.update()
             if note.destructed:
                 self.combo = 1
+
         total_points = 0
         for key in self.key_fields:
             key.update(keys)
             total_points += key.points
+
+        if total_points < 0: total_points = 0
 
         self.total_points = total_points
         self.combo_txt = self.create_text("Combo: ",self.combo)
@@ -52,15 +56,16 @@ class ActualRound:
 
 
 class KeyField:
-    def __init__(self, x, y, unpressed_color, pressed_color, key):
+    def __init__(self, x, y, unpressed_color, pressed_color, key, mult_scores):
         self.rect = pg.Rect(x, y, 30, 10)
         self.unpressed_color = unpressed_color
         self.pressed_color = pressed_color
         self.key = key
         self.pressed = False
         self.points = 0
-        self.combo = int(0)
+        self.combo = 0
         self.last_tick = 0
+        self.combo_multiplier_scores = mult_scores
 
     def draw_rect(self, display):
         if self.pressed == True:
@@ -75,11 +80,13 @@ class KeyField:
             if note_idx != -1:
                 actual_note = notes[note_idx]
                 if actual_note.note_ended():  self.pressed = True
-                self.points += actual_note.calculate_points(*actual_note.points_args)*int(combo)
+                self.points += actual_note.calculate_points(*actual_note.points_args)*self.calculate_combo_multiplier()
                 
                 if actual_note.note_ended():
                     notes[note_idx].updating = False
                     notes.pop(note_idx)
+
+                    if self.detect_FakeNote(actual_note): return 1
                     
                 is_SlowNote = isinstance(actual_note, SlowNote)
                 actual_tick = pg.time.get_ticks()
@@ -90,6 +97,16 @@ class KeyField:
                 self.pressed = True
                 return 1
         return combo
+    
+    def calculate_combo_multiplier(self):
+        if self.combo >= self.combo_multiplier_scores[0] and self.combo < self.combo_multiplier_scores[1]: return 1
+        elif self.combo >= self.combo_multiplier_scores[1] and self.combo < self.combo_multiplier_scores[2]: return 2
+        elif self.combo >= self.combo_multiplier_scores[2] and self.combo < self.combo_multiplier_scores[3]: return 3
+        elif self.combo >= self.combo_multiplier_scores[3]: return 4
+
+    def detect_FakeNote(self, note):
+        if isinstance(note, FakeNote): return True
+        else: return False
 
     def detect_SlowNote(self, note, is_SlowNote, actual_tick, combo):
         if is_SlowNote:
@@ -111,6 +128,7 @@ class Note:
         self.field = field
         self.updating = True
         self.point_intervals = intervals
+        self.points_args = []
 
     def draw_rect(self):
         raise NotImplementedError("You should implement this method")
@@ -126,10 +144,10 @@ class Note:
     
 class FastNote(Note):
     def __init__(self, field : KeyField, speed=5, intervals=[[0, 10, 20], [5, 3, 1]]):
+        super().__init__(field, speed, intervals)
         height = 20
         self.rect = pg.Rect(field.rect.x + 5, 0 - height, 20, height)
         self.points_args = [field.rect.y] 
-        super().__init__(field, speed, intervals)
 
     def draw_rect(self, display):
         if self.destructed == False:
@@ -155,12 +173,10 @@ class FastNote(Note):
 
 class SlowNote(Note):
     def __init__(self, field : KeyField, speed=5,intervals=[[0, 10, 20], [5, 3, 1]], height=150):
+        super().__init__(field, speed, intervals)
         self.rect = pg.Rect(field.rect.x + 5, 0 - height, 20, height)
-        self.points_args = []
         self.time_held = 0
         self.ticks_per_third = round(height / (speed*3))
-        super().__init__(field, speed, intervals)
-        
 
     def draw_rect(self, display):
         if self.destructed == False:
@@ -174,7 +190,6 @@ class SlowNote(Note):
                 self.field.points -= 1
                 self.updating = False
                 
-
     def calculate_points(self):
         self.time_held += 1
         print(self.time_held, self.ticks_per_third)
@@ -188,7 +203,7 @@ class SlowNote(Note):
         else: return 0
 
     def calculate_delay_end(self, actual_tick, last_tick):
-        seconds_per_third = self.ticks_per_third*1000/30
+        seconds_per_third = self.ticks_per_third*1000/30 # how many seconds it takes to move a third of the note
         if actual_tick > last_tick + seconds_per_third: return True
         else: return False
     
@@ -198,21 +213,45 @@ class SlowNote(Note):
         else:
             return False
 
+class FakeNote(Note):
+    def __init__(self, field : KeyField, speed=5, intervals=[[0, 10, 20], [5, 3, 1]]):
+        super().__init__(field, speed, intervals)
+        height = 20
+        self.rect = pg.Rect(field.rect.x + 5, 0 - height, 20, height)
+        self.color = tuple(element/2 for element in self.field.unpressed_color)
+        
+
+    def draw_rect(self, display):
+        if self.destructed == False:
+            pg.draw.rect(display, self.color, self.rect)
+
+    def update(self):
+        if self.updating:
+            self.rect.y += self.speed
+            if self.field.rect.bottom + 10 < self.rect.top:
+                self.destructed = True
+                self.field.points += 1
+                self.updating = False
+
+    def calculate_points(self):
+        return -1
+    
+    def note_ended(self):
+        return True
+
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 clock = pg.time.Clock()
 
-key_fields = [KeyField(100, 400, (255, 0, 0), (220, 0, 0), pg.K_a),
-              KeyField(200, 400, (0, 255, 0), (0, 220, 0), pg.K_s), 
-              KeyField(300, 400, (0, 0, 255), (0, 0, 220), pg.K_d), 
-              KeyField(400, 400, (255, 255, 0), (220, 220, 0), pg.K_f)]
+key_fields = [KeyField(100, 400, (255, 0, 0), (220, 0, 0), pg.K_a, [0, 1, 2, 5]),
+              KeyField(200, 400, (0, 255, 0), (0, 220, 0), pg.K_s, [0, 1, 2, 5]), 
+              KeyField(300, 400, (0, 0, 255), (0, 0, 220), pg.K_d, [0, 1, 2, 5]), 
+              KeyField(400, 400, (255, 255, 0), (220, 220, 0), pg.K_f, [0, 1, 2, 5])]
 
-notes = [FastNote(key_fields[0]), FastNote(key_fields[1]), FastNote(key_fields[1]), SlowNote(key_fields[2])]
-
-note_to_draw = []
-intervals = [0,0,500, 0]
+notes = [FastNote(key_fields[0]), FastNote(key_fields[1]), FastNote(key_fields[1]), FastNote(key_fields[2]), FastNote(key_fields[3])]
+intervals = [0, 0, 500, 0, 1000]
 
 round = ActualRound(key_fields, notes, intervals)
 running = True
@@ -223,7 +262,7 @@ while running:
 
     round.play_notes()
 
-    screen.fill((0, 0, 0))  # Limpa a tela
+    screen.fill((0, 0, 0))  # clears the screen
     
     keys = pg.key.get_pressed()
     undone = False
@@ -231,7 +270,7 @@ while running:
 
     round.update(keys)
 
-    pg.display.flip()  # Atualiza a tela
+    pg.display.flip()  # updates the screen
     clock.tick(30)
 
 pg.quit()
