@@ -1,0 +1,68 @@
+import pygame as pg
+import notes
+
+class KeyField:
+    def __init__(self, x, y, unpressed_color, pressed_color, key, mult_scores):
+        self.rect = pg.Rect(x, y, 30, 10)
+        self.unpressed_color = unpressed_color
+        self.pressed_color = pressed_color
+        self.key = key
+        self.pressed = False
+        self.points = 0
+        self.combo = 0
+        self.last_tick = 0
+        self.combo_multiplier_scores = mult_scores
+        self.last_note = None
+
+    def draw_rect(self, display):
+        if self.pressed == True:
+            pg.draw.rect(display, self.pressed_color, self.rect)
+        else:
+            pg.draw.rect(display, self.unpressed_color, self.rect)
+
+    def on_key_press(self, keys, notes_list, combo : int):
+        if keys[self.key] and not self.pressed:
+            note_idx = self.rect.collidelist(notes_list)
+            
+            if note_idx != -1:
+                actual_note = notes_list[note_idx]
+                if actual_note.note_ended():  self.pressed = True
+                self.points += actual_note.calculate_points(*actual_note.points_args)*self.calculate_combo_multiplier()
+                
+                if actual_note.note_ended():
+                    notes_list[note_idx].updating = False
+                    notes_list.pop(note_idx)
+
+                    if self.detect_FakeNote(actual_note): return 1
+                    
+                is_SlowNote = isinstance(actual_note, notes.SlowNote)
+                actual_tick = pg.time.get_ticks()
+
+                return self.detect_SlowNote(actual_note, is_SlowNote, actual_tick, combo)
+
+            else:
+                self.pressed = True
+                return 1
+        return combo
+    
+    def calculate_combo_multiplier(self):
+        if self.combo >= self.combo_multiplier_scores[0] and self.combo < self.combo_multiplier_scores[1]: return 1
+        elif self.combo >= self.combo_multiplier_scores[1] and self.combo < self.combo_multiplier_scores[2]: return 2
+        elif self.combo >= self.combo_multiplier_scores[2] and self.combo < self.combo_multiplier_scores[3]: return 3
+        elif self.combo >= self.combo_multiplier_scores[3]: return 4
+
+    def detect_FakeNote(self, note):
+        if isinstance(note, notes.FakeNote): return True
+        else: return False
+
+    def detect_SlowNote(self, note, is_SlowNote, actual_tick, combo):
+        if is_SlowNote:
+            if note.calculate_delay_end(actual_tick, self.last_tick): 
+                self.last_tick = actual_tick
+                return combo + 1
+            else: return combo
+        else: return combo + 1
+        
+    def update(self, keys):
+        if not keys[self.key]:
+            self.pressed = False
