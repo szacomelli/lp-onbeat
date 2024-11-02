@@ -7,7 +7,8 @@ class KeyField:
         self.pressed_color = pressed_color
         self.key = key
         self.pressed = False
-
+        self.points = 0
+        self.combo = 0
 
     def draw_rect(self, display):
         if self.pressed == True:
@@ -15,16 +16,19 @@ class KeyField:
         else:
             pg.draw.rect(display, self.unpressed_color, self.rect)
 
-    def on_key_press(self, keys, notes):
+    def on_key_press(self, keys, notes, combo):
         if keys[self.key] and not self.pressed:
             note_idx = self.rect.collidelist(notes)
 
             self.pressed = True
             
             if note_idx != -1:
+                self.points += notes[note_idx].calculate_points(self.rect.y)*combo
                 notes[note_idx].updating = False
                 notes.pop(note_idx)
-                    
+                return (combo + 1)
+            else: return 1
+        else: return combo
 
     def update(self, keys):
         if not keys[self.key]:
@@ -49,6 +53,7 @@ class Note:
             self.rect.y += self.speed
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True
+                self.field.points -= 1
                 self.updating = False
 
     def calculate_points(self, field_y):
@@ -80,6 +85,7 @@ notes = [Note(key_fields[0]), Note(key_fields[1]), Note(key_fields[1]), Note(key
 
 notes_to_draw = []
 intervals = [0,0,500, 0]
+combo = 1
 
 running = True
 while running:
@@ -95,8 +101,9 @@ while running:
     screen.fill((0,0,0))
 
     keys = pg.key.get_pressed()
+
     for key in key_fields:
-            key.on_key_press(keys, notes_to_draw)        
+            combo = key.on_key_press(keys, notes_to_draw, combo)        
             key.draw_rect(screen)
 
     for note in notes_to_draw:
@@ -108,7 +115,9 @@ while running:
     total_points = 0
     for key in key_fields:
         key.update(keys)
+        total_points += key.points
 
+    print(total_points, combo)
     pg.display.flip()  # Atualiza a tela
     clock.tick(30)
 
