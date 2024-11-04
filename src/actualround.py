@@ -1,17 +1,26 @@
 import pygame as pg
 import notes
+import music
 import keyfields
 
 class ActualRound:
-    def __init__(self, key_fields, notes, interval):
+    def __init__(self, key_fields : keyfields.KeyField, music : music.Music):
         self.key_fields = key_fields
-        self.notes_to_play = notes
-        self.notes_interval = interval
+        self.notes_to_play = music.notes_list
+        self.notes_interval = music.time_intervals
+        self.music = music
+        for key_field in self.key_fields:
+            key_field.combo_multiplier_scores = [0, music.total_notes*0.05, music.total_notes*0.1, music.total_notes*0.3]
         self.notes_played = []
         self.total_points = 0
         self.combo = 0
         self.combo_txt = self.create_text("Combo: ",0)
         self.score_txt = self.create_text("Score: ", 0)
+
+    def start_round(self):
+        pg.mixer.music.load(self.music.file_path)
+        pg.mixer.music.play()
+        self.music.update_intervals()
 
     def play_notes(self):
         while len(self.notes_interval) != 0 and pg.time.get_ticks() >= self.notes_interval[0]:

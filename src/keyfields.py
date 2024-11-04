@@ -2,7 +2,7 @@ import pygame as pg
 import notes
 
 class KeyField:
-    def __init__(self, x, y, unpressed_color, pressed_color, key, mult_scores):
+    def __init__(self, x, y, unpressed_color, pressed_color, key, mult_scores=[0, 0, 0, 0]):
         self.rect = pg.Rect(x, y, 30, 10)
         self.unpressed_color = unpressed_color
         self.pressed_color = pressed_color

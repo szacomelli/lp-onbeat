@@ -31,8 +31,8 @@ class Note(ABC):
 class FastNote(Note):
     def __init__(self, field : keyfields.KeyField, speed=5, intervals=[[0, 10, 20], [5, 3, 1]]):
         super().__init__(field, speed, intervals)
-        height = 20
-        self.rect = pg.Rect(field.rect.x + 5, 0 - height, 20, height)
+        size = 25
+        self.rect = pg.Rect(field.rect.centerx - size/2, 0 - size, size, size)
         self.points_args = [field.rect.y] 
 
     def draw_rect(self, display):
