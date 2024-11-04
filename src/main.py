@@ -2,7 +2,7 @@ import pygame as pg
 from threading import Timer as tm
 import notes as nt, keyfields as kf, actualround as ar 
 
-pg.mixer.pre_init(44100, channels=2)
+pg.mixer.pre_init(44100, channels=2, buffer=512)
 pg.mixer.init()
 pg.init()
 
@@ -48,17 +48,18 @@ notes_list = [nt.FastNote(key_fields[0]), nt.FastNote(key_fields[0]), nt.FastNot
               ] + doubles(0) + trines(1) + threes(2)
 
 notes_refrao = doubles(0) + trines(0) + two(2) + two(2) + two_inv(0) + two(3) + trines(2) + trines(2) + trines(0) + [nt.FastNote(key_fields[0]), nt.FastNote(key_fields[3])] \
-+[nt.FastNote(key_fields[1])] + trines(2) + doubles(1) + threes(2) + trines(1) + two_inv(0) \
++[nt.FastNote(key_fields[1])] + trines(2) + doubles(1) + threes(2) + trines(1) + two_inv(0) +  [nt.FastNote(key_fields[0])] \
 +doubles(0) + trines(0) + two(2) + two(2) + two_inv(0) + two(3) + trines(2) + trines(2) + trines(0) + [nt.FastNote(key_fields[0]), nt.FastNote(key_fields[3])] \
-+[nt.FastNote(key_fields[1])] + trines(2) + doubles(1) + threes(2) + trines(1) + two_inv(0) + \
++[nt.FastNote(key_fields[1])] + trines(2) + doubles(1) + threes(2) + trines(1) + two_inv(0) + [nt.FastNote(key_fields[0])] + \
 doubles(0) + trines(0) + two(2) + two(2) + two_inv(0) + two(3) + trines(2) + trines(2) + trines(0) + [nt.FastNote(key_fields[0]), nt.FastNote(key_fields[3])] \
-+[nt.FastNote(key_fields[1])] + trines(2) + doubles(1) + threes(2) + trines(1) + two_inv(0)+ \
++[nt.FastNote(key_fields[1])] + trines(2) + doubles(1) + threes(2) + trines(1) + two_inv(0)+ [nt.FastNote(key_fields[0])] +\
 doubles(0) + trines(0) + two(2) + two(2) + two_inv(0) + two(3) + trines(2) + trines(2) + trines(0) + [nt.FastNote(key_fields[0]), nt.FastNote(key_fields[3])] \
-+[nt.FastNote(key_fields[1])] + trines(2) + doubles(1) + threes(2) + trines(1) + two_inv(0)
++[nt.FastNote(key_fields[1])] + trines(2) + doubles(1) + threes(2) + trines(1) + two_inv(0) + [nt.FastNote(key_fields[0])]
+
 print(len(notes_list))
 notes_list = notes_list + notes_refrao.copy() #+ notes_refrao.copy() + notes_refrao.copy() + notes_refrao.copy()
 print(len(notes_refrao), len(notes_list))
-intervals = [ 8000, 8250] + [8500, 8633, 8766, 9000, 9333, 9666, 10000, 12000, 12250, 12500, 12633, 12766, 13000, 13333, 13666, 14000,
+intervals = [8000, 8250] + [8500, 8633, 8766, 9000, 9333, 9666, 10000, 12000, 12250, 12500, 12633, 12766, 13000, 13333, 13666, 14000,
 16000, 16250, 16500, 16633, 16766, 17000, 17333, 17666, 18000, 18250, 18500, 18633, 18766, 19000, 19333, 19666, 20000, 20250, 20500, 20633, 20766,
 21000, 21333, 21666, 22000, 23000, 23500] + [24000, 24250] + [24500, 24633, 24766]+ [25000, 25333, 25666]
 refrao = [26000, 26250] + [26500, 26750, 26875] + [27000, 27125, 27250, 27375] + [27500, 27750] + [28000, 28250] + [28500, 28750, 28875, 29250, 29375] + [29500, 29750, 29875] + [30000, 30250] + [30500,
@@ -69,15 +70,20 @@ refrao_4 = [i+8000 for i in refrao_3]
 
 intervals = intervals + refrao + refrao_2 + refrao_3 + refrao_4
 
-
-for i in intervals:
-    idx = intervals.index(i)
-    intervals[idx] = i + 400 - 2890
-
-
-
 pg.mixer.music.load("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3")
 pg.mixer.music.play()
+
+print(intervals)
+print(len(intervals), len(notes_list))
+for i in intervals:
+    idx = intervals.index(i)
+    intervals[idx] = i + (pg.time.get_ticks() - pg.mixer.music.get_pos()) - 2700
+
+print(intervals)
+
+#
+
+print(pg.mixer.get_init())
 
 round = ar.ActualRound(key_fields, notes_list, intervals)
 running = True
