@@ -9,7 +9,7 @@ class ActualRound:
         self.notes_interval = interval
         self.notes_played = []
         self.total_points = 0
-        self.combo = 1
+        self.combo = 0
         self.combo_txt = self.create_text("Combo: ",0)
         self.score_txt = self.create_text("Score: ", 0)
 
@@ -22,7 +22,7 @@ class ActualRound:
 
     def draw_objects(self, keys, screen):
         for key in self.key_fields:
-            self.combo = key.on_key_press(keys, self.notes_played, self.combo)        
+            self.combo = key.on_key_press(keys, self.notes_played, self.combo) 
             key.draw_rect(screen)
 
         for note in self.notes_played:
@@ -36,7 +36,8 @@ class ActualRound:
         for note in self.notes_played:
             note.update()
             if note.destructed:
-                self.combo = 1
+                self.combo = 0
+                self.notes_played.remove(note)
 
         total_points = 0
         for key in self.key_fields:
@@ -52,4 +53,13 @@ class ActualRound:
     def create_text(self, text, number):
         font = pg.font.SysFont('Comic Sans MS', 30)
         return font.render(text+str(number), False, (220, 0, 0))
+    
+    def SlowKey_held_reset(self, key):
+        # this prevents the player of exploiting SlowNotes.calculate_points by 
+        # spamming the button instead of holding it 
+        for key_field in self.key_fields:
+            if key == key_field.key:
+                for note in self.notes_played:
+                    if isinstance(note, notes.SlowNote) and note.field == key_field:
+                        note.time_held = 0
 

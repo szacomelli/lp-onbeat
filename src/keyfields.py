@@ -9,7 +9,7 @@ class KeyField:
         self.key = key
         self.pressed = False
         self.points = 0
-        self.combo = 0
+        self.combo = 0 #unused
         self.last_tick = 0
         self.combo_multiplier_scores = mult_scores
         self.last_note = None
@@ -22,27 +22,29 @@ class KeyField:
 
     def on_key_press(self, keys, notes_list, combo : int):
         if keys[self.key] and not self.pressed:
+            print(pg.time.get_ticks())
             note_idx = self.rect.collidelist(notes_list)
             
             if note_idx != -1:
                 actual_note = notes_list[note_idx]
                 if actual_note.note_ended():  self.pressed = True
                 self.points += actual_note.calculate_points(*actual_note.points_args)*self.calculate_combo_multiplier()
-                
+                print(actual_note.calculate_points(*actual_note.points_args))
                 if actual_note.note_ended():
                     notes_list[note_idx].updating = False
                     notes_list.pop(note_idx)
 
-                    if self.detect_FakeNote(actual_note): return 1
+                    if self.detect_FakeNote(actual_note): 
+                        return 0
                     
                 is_SlowNote = isinstance(actual_note, notes.SlowNote)
                 actual_tick = pg.time.get_ticks()
-
                 return self.detect_SlowNote(actual_note, is_SlowNote, actual_tick, combo)
 
             else:
+                
                 self.pressed = True
-                return 1
+                return 0
         return combo
     
     def calculate_combo_multiplier(self):
@@ -52,15 +54,18 @@ class KeyField:
         elif self.combo >= self.combo_multiplier_scores[3]: return 4
 
     def detect_FakeNote(self, note):
-        if isinstance(note, notes.FakeNote): return True
-        else: return False
+        if isinstance(note, notes.FakeNote): 
+            return True
+        else: 
+            return False
 
     def detect_SlowNote(self, note, is_SlowNote, actual_tick, combo):
         if is_SlowNote:
             if note.calculate_delay_end(actual_tick, self.last_tick): 
                 self.last_tick = actual_tick
                 return combo + 1
-            else: return combo
+            else: 
+                return combo
         else: return combo + 1
         
     def update(self, keys):
