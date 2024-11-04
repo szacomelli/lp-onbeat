@@ -23,8 +23,9 @@ class ActualRound:
         self.music.update_intervals()
 
     def play_notes(self):
-        while len(self.notes_interval) != 0 and pg.time.get_ticks() >= self.notes_interval[0]:
+        while len(self.notes_interval) != 0 and pg.time.get_ticks() + 500*self.notes_to_play[0].speed >= self.notes_interval[0]:
             if len(self.notes_to_play) != 0:
+                self.notes_to_play[0].time_interval = self.notes_interval[0]
                 self.notes_played.append(self.notes_to_play[0])
                 self.notes_to_play.pop(0)
             self.notes_interval.pop(0)

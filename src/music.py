@@ -26,7 +26,7 @@ class Music:
     def update_intervals(self, note_offset=1200):
         for i in self.time_intervals:
             idx = self.time_intervals.index(i)
-            self.time_intervals[idx] = i + (self.get_music_delay()) - note_offset
+            self.time_intervals[idx] = i + (self.get_music_delay()) #- note_offset
     
 class ItaloMusic(Music):
     def __init__(self, file, key_fields : kf.KeyField):
@@ -85,3 +85,19 @@ class ItaloMusic(Music):
         return [nt.FastNote(key_fields[i]), nt.FastNote(key_fields[i+1])]
     def two_one(self, i, key_fields):
         return [nt.FastNote(key_fields[i]), nt.FastNote(key_fields[i+1]), nt.FastNote(key_fields[i+1])]
+
+
+
+class StardewMusic(Music):
+
+    def __init__(self, file, key_fields : kf.KeyField):
+        super().__init__(file, key_fields)
+
+    def create_intervals(self):
+        intervals = [0, 250]+[500,625,750,875]+[1000,1125,1250]+[1500,1750]+[2000,2125,2250]+\
+        [2500,2750,2875]+[3000,3125,3375]+[3500,3750]+[4000,4250]+[4625,4875]+\
+        [5000,5125,5250]+[5500,5750]+[6125,6250]+[6500,6875]
+        return intervals
+    
+    def create_notes(self, key_fields):
+        fo
