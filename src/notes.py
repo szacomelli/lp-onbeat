@@ -1,6 +1,8 @@
 import pygame as pg
 import keyfields
-class Note: 
+from abc import ABC, abstractmethod
+
+class Note(ABC): 
     def __init__(self, field : keyfields.KeyField, speed=5, intervals=[[0, 10, 20], [5, 3, 1]]):
         self.color = field.unpressed_color
         self.speed = speed
@@ -10,27 +12,34 @@ class Note:
         self.point_intervals = intervals
         self.points_args = []
 
+    @abstractmethod
     def draw_rect(self):
         raise NotImplementedError("You should implement this method")
     
+    @abstractmethod
     def update(self):
         raise NotImplementedError("You should implement this method")
     
+    @abstractmethod
     def calculate_points(self):
         raise NotImplementedError("You should implement this method")
     
+    @abstractmethod
     def note_ended(self):
         raise NotImplementedError("You should implement this method")
     
 class FastNote(Note):
     def __init__(self, field : keyfields.KeyField, speed=5, intervals=[[0, 10, 20], [5, 3, 1]]):
         super().__init__(field, speed, intervals)
-        height = 20
-        self.rect = pg.Rect(field.rect.x + 5, 0 - height, 20, height)
+        size = 25
+        self.rect = pg.Rect(field.rect.centerx - size/2, 0 - size, size, size)
         self.points_args = [field.rect.y] 
 
     def draw_rect(self, display):
-        if self.destructed == False:
+        if self.rect.y - self.field.rect.y <= 5 and self.rect.y - self.field.rect.y >= 0:
+            pg.draw.rect(display, (255,255,255), self.rect)
+            print(pg.mixer_music.get_pos())
+        elif self.destructed == False:
             pg.draw.rect(display, self.color, self.rect)
 
     def update(self):
@@ -71,10 +80,7 @@ class SlowNote(Note):
                 self.updating = False
                 
     def calculate_points(self):
-        # spamming the button can make this grow too much (bug in the game)
-        # fix this creating a module which uses self.field, event.get(), KEY_UP and time_held
         self.time_held += 1
-        #debug: print(self.time_held, self.ticks_per_third)
 
         if self.time_held == self.ticks_per_third:
             return 1
@@ -90,7 +96,7 @@ class SlowNote(Note):
         else: return False
     
     def note_ended(self):
-        if self.rect.y + 5 >= self.field.rect.y:
+        if self.rect.top + 5 >= self.field.rect.bottom:
             return True
         else:
             return False

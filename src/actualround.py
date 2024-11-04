@@ -1,17 +1,26 @@
 import pygame as pg
 import notes
+import music
 import keyfields
 
 class ActualRound:
-    def __init__(self, key_fields, notes, interval):
+    def __init__(self, key_fields : keyfields.KeyField, music : music.Music):
         self.key_fields = key_fields
-        self.notes_to_play = notes
-        self.notes_interval = interval
+        self.notes_to_play = music.notes_list
+        self.notes_interval = music.time_intervals
+        self.music = music
+        for key_field in self.key_fields:
+            key_field.combo_multiplier_scores = [0, music.total_notes*0.05, music.total_notes*0.1, music.total_notes*0.3]
         self.notes_played = []
         self.total_points = 0
-        self.combo = 1
+        self.combo = 0
         self.combo_txt = self.create_text("Combo: ",0)
         self.score_txt = self.create_text("Score: ", 0)
+
+    def start_round(self):
+        pg.mixer.music.load(self.music.file_path)
+        pg.mixer.music.play()
+        self.music.update_intervals()
 
     def play_notes(self):
         while len(self.notes_interval) != 0 and pg.time.get_ticks() >= self.notes_interval[0]:
@@ -22,7 +31,7 @@ class ActualRound:
 
     def draw_objects(self, keys, screen):
         for key in self.key_fields:
-            self.combo = key.on_key_press(keys, self.notes_played, self.combo)        
+            self.combo = key.on_key_press(keys, self.notes_played, self.combo) 
             key.draw_rect(screen)
 
         for note in self.notes_played:
@@ -36,7 +45,8 @@ class ActualRound:
         for note in self.notes_played:
             note.update()
             if note.destructed:
-                self.combo = 1
+                self.combo = 0
+                self.notes_played.remove(note)
 
         total_points = 0
         for key in self.key_fields:
@@ -52,4 +62,13 @@ class ActualRound:
     def create_text(self, text, number):
         font = pg.font.SysFont('Comic Sans MS', 30)
         return font.render(text+str(number), False, (220, 0, 0))
+    
+    def SlowKey_held_reset(self, key):
+        # this prevents the player of exploiting SlowNotes.calculate_points by 
+        # spamming the button instead of holding it 
+        for key_field in self.key_fields:
+            if key == key_field.key:
+                for note in self.notes_played:
+                    if isinstance(note, notes.SlowNote) and note.field == key_field:
+                        note.time_held = 0
 
