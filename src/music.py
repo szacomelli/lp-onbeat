@@ -102,12 +102,10 @@ class StardewMusic(Music):
         notes2 = []
         for i in intervals:
             notes2.append(i+8000)
-        intervals = intervals + notes2
         second = [24000, 24250]+[24750]+[25500]+[27500]+[28000,28250]+[28750]
         second2 = []
         for i in second:
             second2.append(i + 8000)
-        intervals = intervals + second + second2
         stairs = [40750,40875]+[41000,41125,41250,41375]+[41500,41625,41750,41875]+\
             [42000,42125,42250,42375]+[42500,42625,42750,42875]+\
             [43000,43125,43250,43375]+[43500]
@@ -120,16 +118,14 @@ class StardewMusic(Music):
             stairs4 = []
         for i in stairs3:
             stairs4.append(i+3875)
-            stairs5 = []
-        for i in stairs4:
-            stairs5.append(i+3875)
-            stairs6 = []
-        for i in stairs5:
-            stairs6.append(i+3875)
-            stairs7 = []
-        for i in stairs6:
-            stairs7.append(i+3875)
-        return intervals + stairs + stairs2 + stairs3 + stairs4 + stairs5 + stairs6 + stairs7
+        notes3 = []
+        for i in notes2:
+            notes3.append(i + 40000)
+        notes4 = []
+        for i in notes3:
+            notes4.append(i + 8000)
+
+        return intervals + notes2 + second + second2 + stairs + stairs2 + stairs3 + stairs4 + notes3 + notes4
     
     def create_notes(self, key_fields):
         notes = []

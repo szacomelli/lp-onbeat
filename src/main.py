@@ -20,7 +20,7 @@ key_fields = [kf.KeyField(100, 400, (255, 0, 0), (220, 0, 0), pg.K_s),
               kf.KeyField(400, 400, (255, 255, 0), (220, 220, 0), pg.K_l)]
 
 
-musica = ms.StardewMusic("./Tropicala.mp3", key_fields)
+musica = ms.StardewMusic("./Tropicala-short.mp3", key_fields)
 round = ar.ActualRound(key_fields, musica)
 
  #+ notes_refrao.copy() + notes_refrao.copy() + notes_refrao.copy()
