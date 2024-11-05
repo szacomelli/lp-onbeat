@@ -3,7 +3,11 @@ import notes
 
 class KeyField:
     def __init__(self, x, y, unpressed_color, pressed_color, key, mult_scores=[0, 0, 0, 0]):
-        self.rect = pg.Rect(x, y, 30, 10)
+        size = 30
+        interior_size = size-5
+        bias = -interior_size + size
+        self.rect = pg.Rect(x, y, size, size)
+        self.interior_rect = pg.Rect((x+bias/2),y+bias/2, interior_size, interior_size)
         self.unpressed_color = unpressed_color
         self.pressed_color = pressed_color
         self.key = key
@@ -17,8 +21,10 @@ class KeyField:
     def draw_rect(self, display):
         if self.pressed == True:
             pg.draw.rect(display, self.pressed_color, self.rect)
+            pg.draw.rect(display, (0,0,0), self.interior_rect)
         else:
             pg.draw.rect(display, self.unpressed_color, self.rect)
+            pg.draw.rect(display, (0,0,0), self.interior_rect)
 
     def on_key_press(self, keys, notes_list, combo : int):
         if keys[self.key] and not self.pressed:
@@ -42,7 +48,6 @@ class KeyField:
                 return self.detect_SlowNote(actual_note, is_SlowNote, actual_tick, combo)
 
             else:
-                
                 self.pressed = True
                 return 0
         return combo
@@ -61,6 +66,7 @@ class KeyField:
 
     def detect_SlowNote(self, note, is_SlowNote, actual_tick, combo):
         if is_SlowNote:
+            note.pressed = True
             if note.calculate_delay_end(actual_tick, self.last_tick): 
                 self.last_tick = actual_tick
                 return combo + 1
