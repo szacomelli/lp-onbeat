@@ -94,10 +94,46 @@ class StardewMusic(Music):
         super().__init__(file, key_fields)
 
     def create_intervals(self):
-        intervals = [0, 250]+[500,625,750,875]+[1000,1125,1250]+[1500,1750]+[2000,2125,2250]+\
+        intervals = [0, 250]+[625,875]+[1000,1125,1250]+[1500,1750]+[2000,2250]+\
         [2500,2750,2875]+[3000,3125,3375]+[3500,3750]+[4000,4250]+[4625,4875]+\
-        [5000,5125,5250]+[5500,5750]+[6125,6250]+[6500,6875]
-        return intervals
+        [5000,5125,5250]+[5500,5750]+[6000,6250]+[6500,6750,6875]
+        for i in intervals:
+            intervals[intervals.index(i)] += 8000
+        notes2 = []
+        for i in intervals:
+            notes2.append(i+8000)
+        intervals = intervals + notes2
+        second = [24000, 24250]+[24750]+[25500]+[27500]+[28000,28250]+[28750]
+        second2 = []
+        for i in second:
+            second2.append(i + 8000)
+        intervals = intervals + second + second2
+        stairs = [40750,40875]+[41000,41125,41250,41375]+[41500,41625,41750,41875]+\
+            [42000,42125,42250,42375]+[42500,42625,42750,42875]+\
+            [43000,43125,43250,43375]+[43500]
+        stairs2 = []
+        for i in stairs:
+            stairs2.append(i+3875)
+            stairs3 = []
+        for i in stairs2:
+            stairs3.append(i+3875)
+            stairs4 = []
+        for i in stairs3:
+            stairs4.append(i+3875)
+            stairs5 = []
+        for i in stairs4:
+            stairs5.append(i+3875)
+            stairs6 = []
+        for i in stairs5:
+            stairs6.append(i+3875)
+            stairs7 = []
+        for i in stairs6:
+            stairs7.append(i+3875)
+        return intervals + stairs + stairs2 + stairs3 + stairs4 + stairs5 + stairs6 + stairs7
     
     def create_notes(self, key_fields):
-        fo
+        notes = []
+        for i in self.time_intervals:
+            notes.append(nt.FastNote(key_fields[i % 4]))
+        #notes.insert(self.time_intervals.index(3500+8000), nt.SlowNote(key_fields[0]))
+        return notes
