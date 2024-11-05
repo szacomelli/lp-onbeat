@@ -106,18 +106,18 @@ class StardewMusic(Music):
         second2 = []
         for i in second:
             second2.append(i + 8000)
-        stairs = [40750,40875]+[41000,41125,41250,41375]+[41500,41625,41750,41875]+\
+        stairs = [40000, 40125, 40250, 40375, 40500, 40625, 40750,40875]+[41000,41125,41250,41375]+[41500,41625,41750,41875]+\
             [42000,42125,42250,42375]+[42500,42625,42750,42875]+\
             [43000,43125,43250,43375]+[43500]
         stairs2 = []
         for i in stairs:
-            stairs2.append(i+3875)
+            stairs2.append(i+4000)
             stairs3 = []
         for i in stairs2:
-            stairs3.append(i+3875)
+            stairs3.append(i+4000)
             stairs4 = []
         for i in stairs3:
-            stairs4.append(i+3875)
+            stairs4.append(i+4000)
         notes3 = []
         for i in notes2:
             notes3.append(i + 40000)
