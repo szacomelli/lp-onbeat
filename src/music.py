@@ -97,6 +97,7 @@ class StardewMusic(Music):
         intervals = [0, 250]+[625,875]+[1000,1125,1250]+[1500,1750]+[2000,2250]+\
         [2500,2750,2875]+[3000,3125,3375]+[3500,3750]+[4000,4250]+[4625,4875]+\
         [5000,5125,5250]+[5500,5750]+[6000,6250]+[6500,6750,6875]
+
         for i in intervals:
             intervals[intervals.index(i)] += 8000
         notes2 = []
@@ -106,9 +107,11 @@ class StardewMusic(Music):
         second2 = []
         for i in second:
             second2.append(i + 8000)
-        stairs = [40000, 40125, 40250, 40375, 40500, 40625, 40750,40875]+[41000,41125,41250,41375]+[41500,41625,41750,41875]+\
+
+        stairs = [40000, 40125, 40250, 40375] + [40500, 40625, 40750,40875]+[41000,41125,41250,41375]+[41500,41625,41750,41875]+\
             [42000,42125,42250,42375]+[42500,42625,42750,42875]+\
             [43000,43125,43250,43375]+[43500]
+        
         stairs2 = []
         for i in stairs:
             stairs2.append(i+4000)
@@ -125,11 +128,44 @@ class StardewMusic(Music):
         for i in notes3:
             notes4.append(i + 8000)
 
-        return intervals + notes2 + second + second2 + stairs + stairs2 + stairs3 + stairs4 + notes3 + notes4
+        joyful = [72000, 72750]+[73750]+[74000,74750]+[75750]+\
+                [76000,76750]+[77750]+[78000,78750]+[79500]
+        
+        joyful2 = []
+        for i in joyful:
+            joyful2.append(i+8000)
+
+        lasts=[88000,88250,88500,88625,88750,88875]+[89125,89250,89375,89500]+\
+            [90000,90250,90500,90750,90875]+[91000,91125,91250,91375,91500]+\
+            [91625,91750,91875]+[92000,92125,92250,92375]+[92500,92675,92750,92875]+\
+            [93000,93125,93250]+[94000,94250,94750]
+        
+        lasts2 = []
+        for i in notes4:
+            lasts2.append(i+32000)
+            if (i+32000) % 2000 == 0:
+                lasts2.append(i+32000)
+            
+        lasts3 = []
+        for i in lasts2:
+            lasts3.append(i+8000)
+            
+        new_intervals=intervals + notes2 + second + second2 + stairs + stairs2 + stairs3 + stairs4 + notes3 + notes4 + joyful + joyful2 + lasts + lasts2 + lasts3
+        # print(notes4)
+        return new_intervals
     
     def create_notes(self, key_fields):
         notes = []
+        last = 0
         for i in self.time_intervals:
-            notes.append(nt.FastNote(key_fields[i % 4]))
+            if i < 95000:
+                notes.append(nt.FastNote(key_fields[i % 4]))
+            elif last != i and i % 2000 == 0:
+                notes.append(nt.FastNote(key_fields[i % 3]))
+                notes.append(nt.FastNote(key_fields[(i % 3) + 1]))
+                last = i
+            else:
+                notes.append(nt.FastNote(key_fields[i % 4]))
+                last = i
         #notes.insert(self.time_intervals.index(3500+8000), nt.SlowNote(key_fields[0]))
         return notes
