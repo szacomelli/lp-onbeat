@@ -12,6 +12,7 @@ class Note(ABC):
         self.point_intervals = intervals
         self.points_args = []
         self.time_interval = 0
+        self.birth_time = pg.time.get_ticks()
 
     @abstractmethod
     def draw_rect(self):
@@ -30,23 +31,27 @@ class Note(ABC):
         raise NotImplementedError("You should implement this method")
     
 class FastNote(Note):
-    def __init__(self, field : keyfields.KeyField, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
+    def __init__(self, field : keyfields.KeyField, speed=1, intervals=[[0, 10, 20], [5, 3, 1]]):
         super().__init__(field, speed, intervals)
         size = 25
-        self.rect = pg.Rect(field.rect.centerx - size/2, 0 - size, size, size)
+        self.y_spawn = 0 - size
+        self.rect = pg.Rect(field.rect.centerx - size/2, self.y_spawn, size, size)
         self.points_args = [field.rect.y] 
 
     def draw_rect(self, display):
-        if self.rect.y - self.field.rect.y <= 10 and self.rect.y - self.field.rect.y >= -5:
+        if self.rect.y - self.field.rect.y <= 5 and self.rect.y - self.field.rect.y >= -5:
             pg.draw.rect(display, (255,255,255), self.rect)
-            #print(pg.mixer_music.get_pos())
+            print(self.time_interval, pg.mixer.music.get_pos())
         elif self.destructed == False:
             pg.draw.rect(display, self.color, self.rect)
 
-    def update(self):
+    def update(self,speed):
         if self.updating:
-            self.rect.y = self.field.rect.y - (self.time_interval - pg.time.get_ticks())/self.speed#+= self.speed
-            #print(self.rect.y)
+            self.rect.centerx = self.field.rect.centerx
+            self.rect.width, self.rect.height = self.calculate_size()
+            #print(self.field.rect.y)
+            self.rect.y = self.field.rect.y - (self.time_interval +pg.time.get_ticks() - pg.mixer.music.get_pos()- pg.time.get_ticks())/speed#+= self.speed
+            
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True
                 self.field.points -= 1
@@ -59,27 +64,41 @@ class FastNote(Note):
         elif bias <= self.point_intervals[0][2] and bias >= -self.point_intervals[0][2]: return self.point_intervals[1][2]
         else: return 1
 
+    def calculate_size(self):
+        return (self.field.rect.width,self.field.rect.height)
+
     def note_ended(self):
         return True
 
 class SlowNote(Note):
-    def __init__(self, field : keyfields.KeyField, speed=2,intervals=[[0, 10, 20], [5, 3, 1]], height=150):
+    def __init__(self, field : keyfields.KeyField, speed=1,intervals=[[0, 10, 20], [5, 3, 1]], height=150):
         super().__init__(field, speed, intervals)
         self.height = height
+        width = self.field.rect.width*(1-1/6)
+        self.height_ratio = height/width
         self.pressed = False
-        self.rect = pg.Rect(field.rect.x + 5, 0 - height, 20, height)
+        self.y_spawn = 0 - height
+        self.rect = pg.Rect(field.rect.centerx - width/2, self.y_spawn, width, height)
         self.time_held = 0
-        self.ticks_per_third = round(height / (speed*3))
+        self.seconds_per_third = round(height / (speed*3))
+        self.first_update = True
 
     def draw_rect(self, display):
         if self.destructed == False:
             pg.draw.rect(display, self.color, self.rect)
+        #print(self)
 
-    def update(self):
+    def update(self, speed):
+        if self.first_update:
+            self.birth_time = pg.time.get_ticks()
+            self.first_update = False
+        if pg.time.get_ticks() - self.birth_time >= 1000:
+            self.seconds_per_third = ((pg.time.get_ticks() - self.birth_time)*(self.height/3))/(self.rect.y + self.height)
         if self.updating:
-            self.rect.y = self.field.rect.y - self.height - (self.time_interval - pg.time.get_ticks())/self.speed
+            self.rect.centerx = self.field.rect.centerx
+            self.rect.width, self.rect.height = self.calculate_size()
+            self.rect.bottom = self.field.rect.y - (self.time_interval - pg.time.get_ticks())/speed + pg.time.get_ticks() - pg.mixer.music.get_pos()
             if self.field.rect.bottom + 50 < self.rect.top and not self.pressed:
-                print((self.time_interval - pg.time.get_ticks())/self.speed, self.field.rect.bottom - self.rect.top)
                 self.destructed = True
                 self.field.points -= 1
                 self.updating = False
@@ -87,21 +106,24 @@ class SlowNote(Note):
     def calculate_points(self):
         self.time_held += 1
 
-        if self.time_held == self.ticks_per_third:
+        if self.time_held == self.seconds_per_third:
             return 1
-        if self.time_held == 2*self.ticks_per_third:
+        if self.time_held == 2*self.seconds_per_third:
             return 3
-        if self.time_held == 3*self.ticks_per_third:
+        if self.time_held == 3*self.seconds_per_third:
             return 5
         else: return 0
 
     def calculate_delay_end(self, actual_tick, last_tick):
-        seconds_per_third = self.ticks_per_third*1000/30 # how many seconds it takes to move a third of the note
+        seconds_per_third = self.seconds_per_third # how many seconds it takes to move a third of the note
         if actual_tick > last_tick + seconds_per_third: return True
         else: return False
+
+    def calculate_size(self):
+        return (self.field.rect.width,self.field.rect.width*self.height_ratio)
     
     def note_ended(self):
-        if self.rect.top + 50 >= self.field.rect.bottom:
+        if self.rect.top + 100 >= self.field.rect.bottom:
             return True
         else:
             return False
@@ -109,8 +131,9 @@ class SlowNote(Note):
 class FakeNote(Note):
     def __init__(self, field : keyfields.KeyField, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
         super().__init__(field, speed, intervals)
-        height = 20
-        self.rect = pg.Rect(field.rect.x + 5, 0 - height, 20, height)
+        height = self.field.rect.width - self.field.bias
+        self.y_spawn = 0 - height
+        self.rect = pg.Rect(field.rect.x + 5, self.y_spawn, 20, height)
         self.color = tuple(element/2 for element in self.field.unpressed_color)
         
 
@@ -118,9 +141,9 @@ class FakeNote(Note):
         if self.destructed == False:
             pg.draw.rect(display, self.color, self.rect)
 
-    def update(self):
+    def update(self,speed):
         if self.updating:
-            self.rect.y = self.field.rect.y - (self.time_interval - pg.time.get_ticks())/self.speed
+            self.rect.y = self.field.rect.y - (self.time_interval - pg.time.get_ticks())/speed
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True
                 self.field.points += 1

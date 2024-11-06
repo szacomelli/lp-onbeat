@@ -4,7 +4,9 @@ import music
 import keyfields
 
 class CurrentRound:
-    def __init__(self, key_fields : keyfields.KeyField, music : music.Music):
+    def __init__(self, key_fields : keyfields.KeyField, music : music.Music, playground, screen_size=[480,640]):
+        self.playground = playground
+        self.screen_size = screen_size
         self.key_fields = key_fields
         self.notes_to_play = music.notes_list
         self.notes_interval = music.time_intervals
@@ -16,6 +18,7 @@ class CurrentRound:
         self.combo = 0
         self.combo_txt = self.create_text("Combo: ",0)
         self.score_txt = self.create_text("Score: ", 0)
+        self.speed = 2
 
     def start_round(self):
         pg.mixer.music.load(self.music.file_path)
@@ -23,7 +26,7 @@ class CurrentRound:
         self.music.update_intervals()
 
     def play_notes(self):
-        while len(self.notes_interval) != 0 and pg.time.get_ticks() + 500*self.notes_to_play[0].speed >= self.notes_interval[0]:
+        while len(self.notes_interval) != 0 and pg.time.get_ticks() + self.screen_size[0]*self.speed>= self.notes_interval[0]:
             if len(self.notes_to_play) != 0:
                 self.notes_to_play[0].time_interval = self.notes_interval[0]
                 self.notes_played.append(self.notes_to_play[0])
@@ -41,10 +44,12 @@ class CurrentRound:
         screen.blit(self.combo_txt, (500,0))
         screen.blit(self.score_txt, (500,50))
 
-    def update(self, keys):
-
+    def update(self, keys, screen, resize):
+        if resize:
+            (self.screen_size, self.speed) = self.playground.update(screen, self.notes_played,self.speed,self.screen_size)
+            
         for note in self.notes_played:
-            note.update()
+            note.update(self.speed)
             if note.destructed:
                 self.combo = 0
                 self.notes_played.remove(note)
@@ -59,7 +64,8 @@ class CurrentRound:
         self.total_points = total_points
         self.combo_txt = self.create_text("Combo: ",self.combo)
         self.score_txt = self.create_text("Score: ",self.total_points)
-        
+        return False
+
     def create_text(self, text, number):
         font = pg.font.SysFont('Comic Sans MS', 30)
         return font.render(text+str(number), False, (220, 0, 0))

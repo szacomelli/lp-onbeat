@@ -26,7 +26,7 @@ class Music:
     def update_intervals(self, note_offset=1200):
         for i in self.time_intervals:
             idx = self.time_intervals.index(i)
-            self.time_intervals[idx] = i + (self.get_music_delay()) #- note_offset
+            self.time_intervals[idx] = i# + (self.get_music_delay()) #- note_offset
     
 class ItaloMusic(Music):
     def __init__(self, file, key_fields : kf.KeyField):
