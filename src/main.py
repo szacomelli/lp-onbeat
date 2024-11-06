@@ -1,6 +1,7 @@
 import pygame as pg
 from threading import Timer as tm
 import notes as nt, keyfields as kf, actualround as ar, music as ms
+import screen_classes as sc
 
 pg.mixer.pre_init(44100, channels=2, buffer=512)
 pg.mixer.init()
@@ -20,7 +21,7 @@ key_fields = [kf.KeyField(100, 400, (255, 0, 0), (220, 0, 0), pg.K_s),
               kf.KeyField(400, 400, (255, 255, 0), (220, 220, 0), pg.K_l)]
 
 
-musica = ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", key_fields)
+musica = ms.ItaloMusic("../FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", key_fields)
 round = ar.ActualRound(key_fields, musica)
 
  #+ notes_refrao.copy() + notes_refrao.copy() + notes_refrao.copy()
@@ -31,6 +32,7 @@ print(pg.mixer.get_init())
 
 
 running = True
+running = sc.Welcome_screen((SCREEN_WIDTH,SCREEN_HEIGHT),running, clock).run()
 while running:
     for event in pg.event.get():
         if event.type == pg.QUIT:
