@@ -36,8 +36,8 @@ class Welcome_screen():
         self.__clock = clock
         self.__screen = pygame.display.set_mode(self._size)
         self.__display = pygame.display.set_caption("OnBeat!!")
-        self._8bitoperator_title = pygame.font.Font("../assets/8bitoperator.ttf", 40)
-        self._8bitoperator_subtitle = pygame.font.Font("../assets/8bitoperator.ttf", 20)
+        self._8bitoperator_title = pygame.font.Font("./assets/8bitoperator.ttf", 40)
+        self._8bitoperator_subtitle = pygame.font.Font("./assets/8bitoperator.ttf", 20)
         self._button_width, self._button_height = 220, 60
         self._bar_width, self._bar_height = 400, 25
         
@@ -71,27 +71,24 @@ class Welcome_screen():
                 elif event.type == pygame.MOUSEBUTTONDOWN and dict_of_button["button_settings"].is_clicked(event):
                     running = False 
                     return True
-        pygame.time.Clock().tick(30)
+        pygame.time.Clock().tick(60)
     
     def run(self):
         pygame.init()
         while self.execute():
-                settings = True
-                while settings:
-                    option = self.seting_screen()
-                    if option == 1 or option == 2 or option == 3 or option == 4:
-                        self.options(option)
-                        settings = True
-                    else:
-                        settings = False
-                    if not self._running:
-                        return
+            settings = True
+            while settings:
+                option = self.seting_screen()
+                if option in {1, 2, 3, 4}:
+                    self.options(option)
+                else:
+                    settings = False
                 if not self._running:
-                    return
+                    return False
         if not self._running:
-            return
+            return False
         self.show_loading_screen()
-        return 
+        return True 
     
     def show_loading_screen(self):
         self.__screen
@@ -102,10 +99,10 @@ class Welcome_screen():
         self.__screen.fill((0, 0, 0))
         self.__screen.blit(loading_message, (self._width//2 - loading_message.get_width()//2, self._height//2 - 50))
 
-        bar_widht, bar_height = 400, 25  
-        bar_x, bar_y = (self._width - bar_widht) // 2, (self._height // 2) + 10  
+        bar_width, bar_height = 400, 25  
+        bar_x, bar_y = (self._width - bar_width) // 2, (self._height // 2) + 10  
 
-        for i in range(bar_widht):
+        for i in range(bar_width):
             pygame.draw.rect(self.__screen, (255, 255, 255), (bar_x, bar_y, i, bar_height))
             pygame.display.flip()
             pygame.time.delay(5)
@@ -119,17 +116,17 @@ class Welcome_screen():
         loading_message2 = self._8bitoperator_subtitle.render(f"Number de algo = variavel", True, (255, 255, 255))
         loading_message3 = self._8bitoperator_subtitle.render(f"Number de algo = variavel", True, (255, 255, 255))
 
-        button_width, button_height = 300, 60
+        button_width, button_height = 250, 60
         dict_of_button = {}
 
         dict_of_button["button_one"]=Button(self._width//2 - button_width//4+70, self._height//2 - 50, button_width, button_height,\
-                          "o-o", self._8bitoperator_subtitle, (255,255,255),(255,25,25), (0,0,0))
+                          "o-o", self._8bitoperator_title, (255,255,255),(255,25,25), (0,0,0))
         dict_of_button["button_two"]=Button(self._width//2 - button_width-50, self._height//2 - 50, button_width, button_height,\
-                          ":3", self._8bitoperator_subtitle, (255,255,255),(255,25,25), (0,0,0))
+                          ":3", self._8bitoperator_title, (255,255,255),(255,25,25), (0,0,0))
         dict_of_button["button_three"]=Button(self._width//2 - button_width//4+70, self._height//2 +50, button_width, button_height,\
-                          ":^", self._8bitoperator_subtitle, (255,255,255),(255,25,25), (0,0,0))
+                          ":^", self._8bitoperator_title, (255,255,255),(255,25,25), (0,0,0))
         dict_of_button["button_back"]=Button(self._width//2 - button_width-50, self._height//2 +50, button_width, button_height,\
-                          "back", self._8bitoperator_subtitle, (255,255,255),(255,25,25), (0,0,0))
+                          "back", self._8bitoperator_title, (255,255,255),(255,25,25), (0,0,0))
         self.clock = pygame.time.Clock()
 
         running = True
@@ -144,8 +141,8 @@ class Welcome_screen():
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    for key in dict_of_button:
-                        dict_of_button[key].check_hover(event.pos)
+                    self._running = False
+                    running = False
                 elif event.type == pygame.MOUSEMOTION:
                     for key in dict_of_button:
                         dict_of_button[key].check_hover(event.pos)
@@ -167,18 +164,18 @@ class Welcome_screen():
         self.__screen
         self.__display
 
-        button_width, self.button_height = 300, 60
+        button_width, self.button_height = 250, 60
         dict_of_button = {}
         dict_of_button["button_easy"] = Button(self._width//2 - button_width-50, self._height//2 - 100, button_width, self.button_height,\
-                          "Easy", self._8bitoperator_subtitle, (255,255,255),(255,25,25), (0,0,0))
+                          "Easy", self._8bitoperator_title, (255,255,255),(255,25,25), (0,0,0))
         dict_of_button["button_normal"] = Button(self._width//2 - button_width//4+70, self._height//2 - 100, button_width, self.button_height,\
-                          "Normal", self._8bitoperator_subtitle, (255,255,255),(255,25,25), (0,0,0))
+                          "Normal", self._8bitoperator_title, (255,255,255),(255,25,25), (0,0,0))
         dict_of_button["button_hard"] = Button(self._width//2 - button_width-50, self._height//2, button_width, self.button_height,\
-                          "Hard", self._8bitoperator_subtitle, (255,255,255),(255,25,25), (0,0,0))
+                          "Hard", self._8bitoperator_title, (255,255,255),(255,25,25), (0,0,0))
         dict_of_button["button_hardcore"] = Button(self._width//2 - button_width//4 +70, self._height//2, button_width, self.button_height,\
-                          "Hardcore", self._8bitoperator_subtitle, (255,255,255),(255,25,25), (0,0,0))
+                          "Hardcore", self._8bitoperator_title, (255,255,255),(255,25,25), (0,0,0))
         dict_of_button["button_back"] = Button(self._width//2 - button_width + 100, self._height//2 + 100, button_width, self.button_height,\
-                          "Back", self._8bitoperator_subtitle, (255,255,255),(255,25,25), (0,0,0))
+                          "Back", self._8bitoperator_title, (255,255,255),(255,25,25), (0,0,0))
         self.clock = pygame.time.Clock()
 
         running = True

@@ -77,3 +77,5 @@ class KeyField:
     def update(self, keys):
         if not keys[self.key]:
             self.pressed = False
+        if self.points < 0:
+            self.points = 0
