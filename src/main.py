@@ -1,6 +1,6 @@
 import pygame as pg
 from threading import Timer as tm
-import notes as nt, keyfields as kf, actualround as ar, music as ms
+import notes as nt, keyfields as kf, currentround as cr, music as ms
 
 pg.mixer.pre_init(44100, channels=2, buffer=512)
 pg.mixer.init()
@@ -21,7 +21,8 @@ key_fields = [kf.KeyField(100, 400, (255, 0, 0), (220, 0, 0), pg.K_s),
 
 
 musica = ms.StardewMusic("./Tropicalia-short.mp3", key_fields)
-round = ar.ActualRound(key_fields, musica)
+#musica = ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", key_fields)
+round = cr.CurrentRound(key_fields, musica)
 
  #+ notes_refrao.copy() + notes_refrao.copy() + notes_refrao.copy()
 

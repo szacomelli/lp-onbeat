@@ -34,7 +34,7 @@ class KeyField:
             if note_idx != -1:
                 actual_note = notes_list[note_idx]
                 if actual_note.note_ended():  self.pressed = True
-                self.points += actual_note.calculate_points(*actual_note.points_args)*self.calculate_combo_multiplier()
+                self.points += actual_note.calculate_points(*actual_note.points_args)*self.calculate_combo_multiplier(combo)
                 print(actual_note.calculate_points(*actual_note.points_args))
                 if actual_note.note_ended():
                     notes_list[note_idx].updating = False
@@ -52,11 +52,11 @@ class KeyField:
                 return 0
         return combo
     
-    def calculate_combo_multiplier(self):
-        if self.combo >= self.combo_multiplier_scores[0] and self.combo < self.combo_multiplier_scores[1]: return 1
-        elif self.combo >= self.combo_multiplier_scores[1] and self.combo < self.combo_multiplier_scores[2]: return 2
-        elif self.combo >= self.combo_multiplier_scores[2] and self.combo < self.combo_multiplier_scores[3]: return 3
-        elif self.combo >= self.combo_multiplier_scores[3]: return 4
+    def calculate_combo_multiplier(self, combo):
+        if combo >= self.combo_multiplier_scores[0] and combo < self.combo_multiplier_scores[1]: return 1
+        elif combo >= self.combo_multiplier_scores[1] and combo < self.combo_multiplier_scores[2]: return 2
+        elif combo >= self.combo_multiplier_scores[2] and combo < self.combo_multiplier_scores[3]: return 3
+        elif combo >= self.combo_multiplier_scores[3]: return 4
 
     def detect_FakeNote(self, note):
         if isinstance(note, notes.FakeNote): 
