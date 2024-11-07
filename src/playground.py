@@ -47,3 +47,4 @@ class Playground:
         self.info[2] = self.info[2]*width_ratio
 
         return ([screen.get_height(),screen.get_width()], speed)
+        

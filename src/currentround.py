@@ -33,7 +33,7 @@ class CurrentRound:
                 self.notes_to_play.pop(0)
             self.notes_interval.pop(0)
 
-    def draw_objects(self, keys, screen):
+    def draw_objects(self, keys, screen : pg.Surface):
         for key in self.key_fields:
             self.combo = key.on_key_press(keys, self.notes_played, self.combo) 
             key.draw_rect(screen)
@@ -41,8 +41,8 @@ class CurrentRound:
         for note in self.notes_played:
             note.draw_rect(screen)
         
-        screen.blit(self.combo_txt, (500,0))
-        screen.blit(self.score_txt, (500,50))
+        screen.blit(self.combo_txt, (screen.get_width() - 150,0))
+        screen.blit(self.score_txt, (screen.get_width() - 150,50))
 
     def update(self, keys, screen, resize):
         if resize:

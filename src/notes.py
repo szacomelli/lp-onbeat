@@ -92,12 +92,14 @@ class SlowNote(Note):
         if self.first_update:
             self.birth_time = pg.time.get_ticks()
             self.first_update = False
+
         if pg.time.get_ticks() - self.birth_time >= 1000:
             self.seconds_per_third = ((pg.time.get_ticks() - self.birth_time)*(self.height/3))/(self.rect.y + self.height)
+
         if self.updating:
             self.rect.centerx = self.field.rect.centerx
             self.rect.width, self.rect.height = self.calculate_size()
-            self.rect.bottom = self.field.rect.y - (self.time_interval - pg.time.get_ticks())/speed + pg.time.get_ticks() - pg.mixer.music.get_pos()
+            self.rect.bottom = self.field.rect.y - (self.time_interval + pg.time.get_ticks() - pg.mixer.music.get_pos()- pg.time.get_ticks())/speed 
             if self.field.rect.bottom + 50 < self.rect.top and not self.pressed:
                 self.destructed = True
                 self.field.points -= 1
@@ -143,7 +145,9 @@ class FakeNote(Note):
 
     def update(self,speed):
         if self.updating:
-            self.rect.y = self.field.rect.y - (self.time_interval - pg.time.get_ticks())/speed
+            self.rect.centerx = self.field.rect.centerx
+            self.rect.width, self.rect.height = self.calculate_size()
+            self.rect.y = self.field.rect.y - (self.time_interval + pg.time.get_ticks() - pg.mixer.music.get_pos() - pg.time.get_ticks())/speed
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True
                 self.field.points += 1
@@ -151,6 +155,9 @@ class FakeNote(Note):
 
     def calculate_points(self):
         return -1
+    
+    def calculate_size(self):
+        return (self.field.rect.width,self.field.rect.height)
     
     def note_ended(self):
         return True

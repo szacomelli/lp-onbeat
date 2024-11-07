@@ -21,9 +21,9 @@ clock = pg.time.Clock()
 
 playground = pgr.Playground(220,50,200,480,keys=[pg.K_d,pg.K_f,pg.K_j,pg.K_k])
 
-musica = ms.StardewMusic("./Tropicalia-short.mp3", playground.key_fields)
-#musica = ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", playground.key_fields)
-round = cr.CurrentRound(playground.key_fields, musica, playground)
+#musica = ms.StardewMusic("./Tropicalia-short.mp3", playground.key_fields)
+musica = ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", playground.key_fields)
+round = cr.CurrentRound(playground.key_fields, musica, playground, speed=2.5)
 
  #+ notes_refrao.copy() + notes_refrao.copy() + notes_refrao.copy()
 
