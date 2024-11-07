@@ -4,7 +4,7 @@ import music
 import keyfields
 
 class CurrentRound:
-    def __init__(self, key_fields : keyfields.KeyField, music : music.Music, playground, screen_size=[480,640]):
+    def __init__(self, key_fields : keyfields.KeyField, music : music.Music, playground, screen_size=[480,640],speed=3):
         self.playground = playground
         self.screen_size = screen_size
         self.key_fields = key_fields
@@ -18,7 +18,7 @@ class CurrentRound:
         self.combo = 0
         self.combo_txt = self.create_text("Combo: ",0)
         self.score_txt = self.create_text("Score: ", 0)
-        self.speed = 2
+        self.speed = speed
 
     def start_round(self):
         pg.mixer.music.load(self.music.file_path)

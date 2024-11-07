@@ -15,8 +15,6 @@ class Playground:
               kf.KeyField(kf_x[2], kf_y, (0, 0, 255), (0, 0, 220), keys[2],size=self.key_field_size), 
               kf.KeyField(kf_x[3], kf_y, (255, 255, 0), (220, 220, 0), keys[3],size=self.key_field_size),]
         self.first_update = True
-        
-        
 
     def update(self,screen,notes_played,speed,screen_size=[480,640]):
         width_ratio = screen.get_width() / screen_size[1]
