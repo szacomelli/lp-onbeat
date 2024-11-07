@@ -36,8 +36,8 @@ class Welcome_screen():
         self.__clock = clock
         self.__screen = pygame.display.set_mode(self._size)
         self.__display = pygame.display.set_caption("OnBeat!!")
-        self._8bitoperator_title = pygame.font.Font("../assets/8bitoperator.ttf", 40)
-        self._8bitoperator_subtitle = pygame.font.Font("../assets/8bitoperator.ttf", 20)
+        self._8bitoperator_title = pygame.font.Font("./assets/8bitoperator.ttf", 40)
+        self._8bitoperator_subtitle = pygame.font.Font("./assets/8bitoperator.ttf", 20)
         self._button_width, self._button_height = 220, 60
         self._bar_width, self._bar_height = 400, 25
         

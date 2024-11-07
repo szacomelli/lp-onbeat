@@ -1,6 +1,7 @@
 import pygame as pg
 from threading import Timer as tm
 import notes as nt, keyfields as kf, actualround as ar, music as ms
+import screen_classes as sc
 
 pg.mixer.pre_init(44100, channels=2, buffer=512)
 pg.mixer.init()
@@ -25,12 +26,15 @@ round = ar.ActualRound(key_fields, musica)
 
  #+ notes_refrao.copy() + notes_refrao.copy() + notes_refrao.copy()
 
-round.start_round()
+# round.start_round()
 
 print(pg.mixer.get_init())
 
 
 running = True
+running = sc.Welcome_screen((SCREEN_WIDTH,SCREEN_HEIGHT),running, clock).run()
+round.start_round()
+
 while running:
     for event in pg.event.get():
         if event.type == pg.QUIT:
