@@ -26,6 +26,12 @@ while running:
             running = False
         if event.type == pg.VIDEORESIZE:
             resize = True
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_SPACE:
+                pg.mixer.music.pause()
+        if event.type == pg.KEYUP:
+            if event.key == pg.K_SPACE:
+                pg.mixer.music.unpause()
 
     round.play_notes()
     

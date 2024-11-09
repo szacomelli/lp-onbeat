@@ -31,7 +31,7 @@ class Note(ABC):
         raise NotImplementedError("You should implement this method")
     
     def calculate_time_gap(self):
-        return self.time_interval + pg.time.get_ticks() - pg.mixer.music.get_pos() - pg.time.get_ticks()
+        return self.time_interval - pg.mixer.music.get_pos() 
     
 class FastNote(Note):
     def __init__(self, field : keyfields.KeyField, speed=1, intervals=[[0, 10, 20], [5, 3, 1]]):

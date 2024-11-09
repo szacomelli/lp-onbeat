@@ -6,19 +6,23 @@ import playground
 
 class CurrentRound:
     def __init__(self, key_fields : keyfields.KeyField, music : music.Music, playground : playground.Playground, screen_size=[480,640],speed=3):
-        self.playground = playground
         self.screen_size = screen_size
         self.key_fields = key_fields
+        self.playground = playground
+        
+        self.music = music
+        self.speed = speed
         self.notes_to_play = music.notes_list
         self.notes_interval = music.time_intervals
-        self.music = music
         self.notes_played = []
+        
         self.total_points = 0
-        self.combo_mult_scores = [0, music.total_notes*0.05, music.total_notes*0.1, music.total_notes*0.3]
         self.combo = 0
+        self.combo_mult_scores = [0, music.total_notes*0.05, music.total_notes*0.1, music.total_notes*0.3]
+        
         self.combo_txt = self.create_text("Combo: ",0)
         self.score_txt = self.create_text("Score: ", 0)
-        self.speed = speed
+        
 
     def start_round(self):
         pg.mixer.music.load(self.music.file_path)
