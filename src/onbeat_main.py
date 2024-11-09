@@ -79,6 +79,7 @@ class MainMenu(Screen):
 
     def on_event(self, event):
         if self.start_button.is_clicked(event):
+            self.manager.round_start()
             self.start_game()
         self.exit_button.is_clicked(event)
             
@@ -87,31 +88,22 @@ class Game(Screen):
         pg.mixer.pre_init(44100, channels=2, buffer=512)
         pg.mixer.init()
         super().__init__(size, manager)
-        self.a = [0, 2, 7, 13]
-        self.key_fields = [kf.KeyField(100, 400, (255, 0, 0), (220, 0, 0), pg.K_s),
-              kf.KeyField(200, 400, (0, 255, 0), (0, 220, 0), pg.K_d), 
-              kf.KeyField(300, 400, (0, 0, 255), (0, 0, 220), pg.K_k), 
-              kf.KeyField(400, 400, (255, 255, 0), (220, 220, 0), pg.K_l)]
-              
-        self.musica = ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", self.key_fields)
-        self.round = ar.ActualRound(self.key_fields, self.musica)
         print(pg.mixer.get_init())
-        self.round.start_round()
 
     def draw(self, screen):
         screen.fill((0, 0, 0))
-        self.round.draw_objects(self.keys, screen)
+        self.manager.round.draw_objects(self.keys, screen)
         pg.display.flip()
 
     def update(self):
-        self.round.play_notes()
+        self.manager.round.play_notes()
         self.keys = pg.key.get_pressed()
         self.undone = False
-        self.round.update(self.keys)
+        self.manager.round.update(self.keys)
 
     def on_event(self,event):
         if event.type == pg.KEYUP:
-           self.round.SlowKey_held_reset(event.key)
+           self.manager.round.SlowKey_held_reset(event.key)
 
 class GameManager:
     def __init__(self):
@@ -127,6 +119,17 @@ class GameManager:
         self.current_screen = self.screen_map["main_menu"]
         self.is_running = False
         self.clock = None
+
+    def round_start(self):
+        self.a = [0, 2, 7, 13]
+        self.key_fields = [kf.KeyField(100, 400, (255, 0, 0), (220, 0, 0), pg.K_s),
+              kf.KeyField(200, 400, (0, 255, 0), (0, 220, 0), pg.K_d), 
+              kf.KeyField(300, 400, (0, 0, 255), (0, 0, 220), pg.K_k), 
+              kf.KeyField(400, 400, (255, 255, 0), (220, 220, 0), pg.K_l)]
+              
+        self.musica = ms.ItaloMusic("../FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", self.key_fields)
+        self.round = ar.ActualRound(self.key_fields, self.musica)
+        self.round.start_round()
 
     def change_state(self, screen_name):
         self.current_screen = self.screen_map[screen_name]
