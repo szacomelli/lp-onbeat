@@ -10,39 +10,57 @@ screen = pg.display.set_mode((screen_size[1], screen_size[0]), pg.RESIZABLE)
 
 clock = pg.time.Clock()
 
-playground = pgr.Playground(184,50,275,480,keys=[pg.K_d,pg.K_f,pg.K_j,pg.K_k], blank_space_percentage=0.20)
+players = 1
+mult = [True, 1]
+if players == 1:
+    mult[0] = False
 
-#musica = ms.StardewMusic("./Tropicalia-short.mp3", playground.key_fields)
-musica = ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", playground.key_fields)
-round = cr.CurrentRound(playground.key_fields, musica, playground, speed=musica.speed)
+musicas = []
+rounds = []
+resizes = []
 
-round.start_round()
+if players == 1:
+    keys=[[[pg.K_d,pg.K_f,pg.K_j,pg.K_k], pg.K_SPACE]]
+elif players == 2:
+    keys=[[[pg.K_q,pg.K_w,pg.K_e,pg.K_r], pg.K_z],[[pg.K_o,pg.K_p,pg.K_LEFTBRACKET,pg.K_RIGHTBRACKET],pg.K_PERIOD]]
 
+for i in range(players):
+    if mult[0]: mult[1] = mult[1] + i
+    musicas.append(ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", keys=keys[i], multiplayer=mult))
+    #musicas.append(ms.StardewMusic("./Tropicalia-short.mp3", keys=keys[i], multiplayer=mult))
+    rounds.append(cr.CurrentRound(music=musicas[i], switch_key=keys[i][1]))
+    resizes.append(False)
+
+
+rounds[0].start_round()
+#pg.mixer.music.set_volume(0)
 running = True
-resize = False
+resize1 = False
+resize2=False
 while running:
     for event in pg.event.get():
+        for round in rounds:
+            round.on_event(event)
         if event.type == pg.QUIT:
             running = False
         if event.type == pg.VIDEORESIZE:
-            resize = True
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_SPACE:
-                pg.mixer.music.pause()
-        if event.type == pg.KEYUP:
-            if event.key == pg.K_SPACE:
-                pg.mixer.music.unpause()
-
-    round.play_notes()
+            for i in range(players):
+                resizes[i] = True
+        
+    for round in rounds:
+        round.play_notes()
     
     screen.fill((0, 0, 0))  # clears the screen
 
-    keys = pg.key.get_pressed()
+    keys_pressed = pg.key.get_pressed()
     undone = False
-    round.draw_objects(screen, keys)
+    
+    for round in rounds:
+        round.draw_objects(screen, keys_pressed)
+    
 
-
-    resize = round.update(keys,screen,resize)
+    for i in range(players):
+        resizes[i] = rounds[i].update(keys_pressed,screen,resizes[i])
 
     pg.display.flip()  # updates the screen
     clock.tick(60)
