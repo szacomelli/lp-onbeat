@@ -1,5 +1,6 @@
 import pygame as pg
 import currentround as cr, music as ms, playground as pgr
+import devmode as dv
 
 pg.mixer.pre_init(44100, channels=2, buffer=512)
 pg.mixer.init()
@@ -10,6 +11,8 @@ screen = pg.display.set_mode((screen_size[1], screen_size[0]), pg.RESIZABLE)
 
 clock = pg.time.Clock()
 
+# dev = dv.DevMode("Musica1", active=True)
+# print(dev.music_list[1].notes_list)
 players = 1
 mult = [True, 1]
 if players == 1:
@@ -26,14 +29,17 @@ elif players == 2:
 
 for i in range(players):
     if mult[0]: mult[1] = mult[1] + i
-    musicas.append(ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", keys=keys[i], multiplayer=mult))
+    #musicas.append(dev.music_list[1])
+    #musicas.append(ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", keys=keys[i], multiplayer=mult))
     #musicas.append(ms.StardewMusic("./Tropicalia-short.mp3", keys=keys[i], multiplayer=mult))
+    musicas.append(ms.StakesMusic("./FullScores/Retro Scores/Ove Melaa - High Stakes,Low Chances.mp3"))
     rounds.append(cr.CurrentRound(music=musicas[i], switch_key=keys[i][1]))
     resizes.append(False)
 
+# rounds = [cr.CurrentRound(music=dev.active_music, switch_key=keys[0][1])]
+# resizes = [False]
 
 rounds[0].start_round()
-#pg.mixer.music.set_volume(0)
 running = True
 resize1 = False
 resize2=False

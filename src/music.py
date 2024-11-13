@@ -16,6 +16,8 @@ class Music:
         self.song = pg.mixer.Sound(file)
         self.channel = pg.mixer.Channel(1)
         self.has_panning = False
+        a = pg.mixer.Sound(self.file_path)
+        self.length = a.get_length()
 
     def create_intervals(self):
         return
@@ -27,11 +29,12 @@ class Music:
         volume = 1   
         
         if self.has_panning: 
-            self.channel.set_volume(0,0)
+            self.channel.set_volume(1,0)
             volume = 0.5
         pg.mixer.music.set_volume(volume)
         pg.mixer.music.load(self.file_path)
         pg.mixer.music.play()
+        #pg.mixer.music.set_volume(0)
         
         if self.has_panning: self.channel.play(self.song)
         
@@ -73,6 +76,7 @@ class ItaloMusic(Music):
         self.playgrounds = [pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers)]#,
                             #pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers2)]
         self.notes_list = self.create_notes(self.playgrounds)
+        self.total_notes = len(self.notes_list)
 
     def create_intervals(self):
         intervals = [8000, 8250, 8500, 8633, 8766, 9000, 9333, 9666, 10000, 12000, 12250, 
@@ -96,7 +100,7 @@ class ItaloMusic(Music):
                          52000, 52250, 52500, 52750, 52875, 53250, 53375, 53500, 53750, 53875, 
                          54000, 54250, 54500, 54875, 55000, 55250, 55375, 55500, 55750, 56000, 
                          56250, 56500, 56750, 56875, 57250, 57375, 57500, 57750]
-        return intervals
+        return [intervals]
 
     def create_notes(self, playgrounds):
         ints_list = [0, 0, 1, 2, 1, 3, 3, 2, 0, 0, 0, 1, 2, 1, 3, 3, 3, 2, 0, 0, 1, 2, 1, 3, 3, 3, 0, 0, 1, 2, 1, 3, 3, 3, 
@@ -116,14 +120,16 @@ class StardewMusic(Music):
     def __init__(self, file, speed=2, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]], multiplayer=[False,1]):
         super().__init__(file, multiplayer=multiplayer)
         
-        pg_numbers = [1,1]
+        pg_numbers = [2,1]
         if multiplayer[0]:
             pg_numbers[1] = pg_numbers[0]*(multiplayer[1]-1) + 1
             pg_numbers[0] = pg_numbers[0]*2
         
-        self.playgrounds = [pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers)]
+        self.playgrounds = [pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers),
+                            pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=[2,2])]
         self.speed = speed
         self.notes_list = self.create_notes(self.playgrounds)
+        self.total_notes = len(self.notes_list)
 
     def create_intervals(self):
         intervals = [8000, 8250, 8625, 8875, 9000, 9125, 9250, 9500, 9750, 10000, 10250, 10500, 
@@ -166,13 +172,13 @@ class StardewMusic(Music):
                      106875, 107000, 107125, 107375, 107500, 107750, 108000, 108000, 108250, 
                      108625, 108875, 109000, 109125, 109250, 109500, 109750, 110000, 110000, 
                      110250, 110500, 110750, 110875]
-        return intervals
+        return [intervals]
     
     def create_notes(self, playgrounds : list[pgr.Playground]):
         notes = []
         last = 0
         inc = 0
-        for i in self.time_intervals:
+        for i in self.time_intervals[0]:
             if ((i > 15000 and i < 15625) or (i > 23000 and i < 23501)):
                 notes.append(nt.FastNote(playgrounds[0].key_fields[1+inc]))
                 inc = (inc + 1) % 2
@@ -189,3 +195,87 @@ class StardewMusic(Music):
                 notes.append(nt.FastNote(playgrounds[0].key_fields[i % 4]))
                 last = i
         return notes
+    
+class StakesMusic(Music):
+    def __init__(self, file, speed=2, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]], multiplayer=[False,1]):
+        super().__init__(file, speed,multiplayer)
+        self.has_panning = True
+        
+        pg_numbers = [2,1]
+        
+        if multiplayer[0]:
+            pg_numbers[1] = pg_numbers[0]*(multiplayer[1]-1) + 1
+            pg_numbers[0] = pg_numbers[0]*2
+            
+        pg_numbers2 = pg_numbers.copy()
+        pg_numbers2[1] = pg_numbers[1] + 1
+        
+        self.playgrounds = [pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers),
+                            pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers2)]
+        self.speed = speed
+        self.notes_list = self.create_notes(self.playgrounds)
+        self.total_notes = len(self.notes_list)
+        
+        
+    def create_intervals(self):        
+        intervals = [
+             (
+              [8649, 8919, 9189, 9324, 9595, 10811, 11081, 11351, 11486, 11757, 12973, 13243, 13514, 13649, 13919, 15135, 15405, 15676, 15811, 
+               16081, 31622, 31757, 32027, 32162, 32568, 33514, 33784, 34054, 34189, 34595, 35946, 36081, 36351, 36486, 36757, 37838, 38108, 
+               38378, 38514, 38919, 40000, 40270, 40405, 40676, 40811, 41081, 42162, 43243, 44459, 44595, 45000, 45135, 45270, 46486, 47568, 
+               48649, 49730, 50811, 69189, 70135, 70541, 71081, 71351, 72432, 72973, 77838, 77973, 78108, 78243, 78649, 78784, 78919, 79054, 
+               80000, 81216, 95135, 95405, 95676, 95811, 96081, 97297, 97568, 97838, 97973, 98243, 103919, 104054, 104324, 104459, 104730], 
+              [17297, 17568, 17838, 17973, 18243, 19459, 19730, 20000, 20135, 20405, 21622, 21892, 22162, 22297, 22568, 23784, 24054, 24324, 
+               24459, 24730, 25946, 26216, 26486, 26622, 26892, 28108, 28378, 28649, 28784, 29054, 29324, 29459, 29595, 30000, 30270, 51892, 
+               53243, 53378, 53649, 53784, 54189, 55135, 55405, 55676, 55811, 56216, 57297, 57568, 57703, 57973, 58108, 58514, 59459, 60541, 
+               61757, 62027, 62297, 62432, 62568, 63784, 64865, 65946, 67027, 68108, 73514, 74459, 74865, 75405, 75676, 76757, 77297, 82162, 
+               82297, 82432, 82568, 82973, 83108, 83243, 83378, 83514, 84054, 84189, 84324, 84459, 84595, 85541, 85946, 86486, 99595, 99730, 
+               100000, 100135, 100405, 101757, 101892, 102162, 102297, 102568]
+             ), 
+             [8649, 8919, 9189, 9324, 9595, 10811, 11081, 11351, 11486, 11757, 12973, 13243, 13514, 13649, 13919, 15135, 15405, 15676, 15811, 
+              16081, 17297, 17568, 17838, 17973, 18243, 19459, 19730, 20000, 20135, 20405, 21622, 21892, 22162, 22297, 22568, 23784, 24054, 24324, 
+              24459, 24730, 25946, 26216, 26486, 26622, 26892, 28108, 28378, 28649, 28784, 29054, 29324, 29459, 29595, 30000, 30270, 31622, 31757, 
+              32027, 32162, 32568, 33514, 33784, 34054, 34189, 34595, 35946, 36081, 36351, 36486, 36757, 37838, 38108, 38378, 38514, 38919, 40000, 
+              40270, 40405, 40676, 40811, 41081, 42162, 43243, 44459, 44595, 45000, 45135, 45270, 46486, 47568, 48649, 49730, 50811, 51892, 53243, 
+              53378, 53649, 53784, 54189, 55135, 55405, 55676, 55811, 56216, 57297, 57568, 57703, 57973, 58108, 58514, 59459, 60541, 61757, 62027, 
+              62297, 62432, 62568, 63784, 64865, 65946, 67027, 68108, 69189, 70135, 70541, 71081, 71351, 72432, 72973, 73514, 74459, 74865, 75405, 
+              75676, 76757, 77297, 77838, 77973, 78108, 78243, 78649, 78784, 78919, 79054, 80000, 81216, 82162, 82297, 82432, 82568, 82973, 83108, 
+              83243, 83378, 83514, 84054, 84189, 84324, 84459, 84595, 85541, 85946, 86486, 95135, 95405, 95676, 95811, 96081, 97297, 97568, 97838, 
+              97973, 98243, 99595, 99730, 100000, 100135, 100405, 101757, 101892, 102162, 102297, 102568, 103919, 104054, 104324, 104459, 104730]
+            ]
+        
+        return intervals
+    
+    
+    def create_notes(self,playgrounds : list[pgr.Playground]):
+        notes = []
+        
+        columns = [0, 0, 1, 0, 1, 2, 2, 3, 2, 3, 0, 0, 1, 0, 1, 2, 2, 3, 2, 3, 0, 0, 3, 0, 3, 1, 1, 2, 1, 2, 0, 0, 
+        3, 0, 3, 1, 1, 2, 1, 2, 0, 0, 3, 0, 3, 1, 1, 2, 1, 2, 0, 1, 2, 1, 3, 0, 1, 2, 3, 2, 1, 0, 1, 0, 0, 1, 2, 3, 
+        2, 3, 0, 1, 2, 3, 2, 1, 3, 1, 3, 1, 2, 3, 0, 1, 0, 1, 0, 1, 2, 3, 3, 2, 1, 0, 0, 1, 1, 2, 3, 2, 3, 2, 3, 2, 0, 
+        1, 2, 3, 2, 3, 0, 1, 2, 3, 1, 2, 1, 3, 3, 2, 1, 0, 1, 1, 1, 1, 2, 3, 0, 3, 1, 1, 1, 2, 0, 3, 0, 2, 1, 3, 1, 
+        2, 1, 2, 0, 1, 2, 3, 2, 3, 0, 2, 1, 2, 1, 0, 2, 1, 2, 1, 3, 0, 2, 0, 1, 0, 1, 0, 2, 3, 2, 3, 2, 1, 2, 1, 
+        2, 1, 0, 3, 0, 3, 0, 1, 2, 1, 2, 1]
+
+        for i in self.time_intervals[1]:
+            if self.time_intervals[0][0].count(i) != 0:
+                notes.append(nt.FastNote(playgrounds[0].key_fields[columns[self.time_intervals[1].index(i)]]))
+            elif self.time_intervals[0][1].count(i) != 0:
+                notes.append(nt.FastNote(playgrounds[1].key_fields[columns[self.time_intervals[1].index(i)]]))
+        
+        self.time_intervals = self.time_intervals[1]
+        
+        return notes
+    
+    
+    def update(self):
+        music_pos = pg.mixer.music.get_pos()        
+        right_triggers = [0, 30270, 68108, 77297, 86486, 102568]
+        left_triggers = [0, 16081, 50811, 72973, 81216, 98243, 104730]
+        
+        for i in range(len(left_triggers)-1):
+            if left_triggers[i] <= music_pos and right_triggers[i] >= music_pos:
+                self.channel.set_volume(0,1)
+        for i in range(len(right_triggers)):
+            if right_triggers[i] <= music_pos and left_triggers[i+1] >= music_pos:
+                self.channel.set_volume(1,0)

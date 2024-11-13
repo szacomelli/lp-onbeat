@@ -23,15 +23,19 @@ class Note(ABC):
         raise NotImplementedError("You should implement this method")
     
     @abstractmethod
-    def calculate_points(self):
+    def calculate_points(self, speed, starting_pos):
         raise NotImplementedError("You should implement this method")
     
     @abstractmethod
     def note_ended(self):
         raise NotImplementedError("You should implement this method")
     
-    def calculate_time_gap(self):
-        return self.time_interval - pg.mixer.music.get_pos() 
+    def calculate_time_gap(self, starting_pos):
+        return self.time_interval - pg.mixer.music.get_pos() - starting_pos
+    
+    def reset(self):
+        self.destructed = False
+        self.updating = True
     
 class FastNote(Note):
     def __init__(self, field : keyfields.KeyField, speed=1, intervals=[[0, 10, 20], [5, 3, 1]]):
@@ -42,19 +46,23 @@ class FastNote(Note):
         self.points_args = [field.rect.y] 
 
     def draw_rect(self, display):
-        if self.destructed == False:
-            pg.draw.rect(display, self.color, self.rect)
+        
+        if self.updating == True and self.destructed == False:
+            if abs(self.rect.y - self.field.rect.y) <= 10*self.ratio:
+                pg.draw.rect(display, (255,255,255), self.rect)
+                #print(self.time_interval)
+            else:
+                pg.draw.rect(display, self.color, self.rect)
 
-    def update(self,speed):
-        if self.updating:
+    def update(self,speed, starting_pos):
             self.rect.centerx = self.field.rect.centerx
             self.rect.width, self.rect.height = self.calculate_size()
 
-            self.rect.y = self.field.rect.y - (self.calculate_time_gap())/speed#+= self.speed
+            self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed#+= self.speed
             
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True
-                self.updating = False
+                
 
     def calculate_points(self):
         bias = self.field.rect.y - self.rect.y
@@ -84,23 +92,32 @@ class SlowNote(Note):
         self.y_holding_end = 0
 
     def draw_rect(self, display):
-        if self.destructed == False:
+        if self.updating == True:# and self.destructed == False:
             pg.draw.rect(display, self.color, self.rect)
 
-    def update(self, speed):
-        if self.updating:
-            self.rect.centerx = self.field.rect.centerx
-            self.rect.width, self.rect.height = self.calculate_size()
+    def update(self, speed, starting_pos):
+        self.rect.centerx = self.field.rect.centerx
+        self.rect.width, self.rect.height = self.calculate_size()
 
-            self.rect.bottom = self.field.rect.y - (self.calculate_time_gap())/speed 
-            
-            if self.field.rect.bottom + 50*self.ratio < self.rect.top and not self.pressed:
-                self.destructed = True
-                self.updating = False
+        self.rect.bottom = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed 
+        
+        if self.field.rect.bottom + 50*self.ratio < self.rect.top:# and not self.pressed:
+            self.pressed = False
+            self.destructed = True
                 
     def calculate_points(self):
-        if self.y_holding_end - self.y_holding_start + 10 > self.rect.height : return 5
+        print(self.y_holding_end - self.y_holding_start + 10*self.ratio , self.rect.height,
+              self.destructed, self.updating,self.pressed)
+        if self.y_holding_end - self.y_holding_start + 10*self.ratio > self.rect.height : 
+            return 5
         else: return 0
+
+    def reset(self):
+        self.destructed = False
+        self.updating = True
+        self.pressed = False
+        self.y_holding_start = 0
+        self.y_holding_end = 0
 
     def calculate_size(self):
         return (self.field.rect.width,self.field.rect.width*self.height_ratio)
@@ -126,12 +143,12 @@ class FakeNote(Note):
         if self.destructed == False:
             pg.draw.rect(display, self.color, self.rect)
 
-    def update(self,speed):
+    def update(self,speed, starting_pos):
         if self.updating:
             self.rect.centerx = self.field.rect.centerx
             self.rect.width, self.rect.height = self.calculate_size()
 
-            self.rect.y = self.field.rect.y - (self.calculate_time_gap())/speed
+            self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed
 
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True

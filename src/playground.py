@@ -1,5 +1,5 @@
 import pygame as pg
-import notes as nt, keyfields as kf, currentround as cr
+import notes as nt, keyfields as kf
 
 class Playground:
     def __init__(self, bottom_padding, screen_width, screen_height, black_bars=50, keys=[pg.K_s, pg.K_d, pg.K_k, pg.K_l], blank_space_percentage=0.1, pg_numbers=[1,1]):
@@ -37,7 +37,6 @@ class Playground:
     def update(self, screen, update_ratios, speed,screen_size=[480,640]):
         width_ratio = screen.get_width() / screen_size[1]
         height_ratio = screen.get_height() / screen_size[0]
-        
         self.bottom_padding = self.bottom_padding*height_ratio
         self.interval = self.interval * width_ratio
         self.key_field_size = self.key_field_size * width_ratio

@@ -28,7 +28,9 @@ class KeyField:
         if isinstance(note, notes.SlowNote):
             if note.pressed == False: note.y_holding_start = note.rect.y
             note.pressed = True
-            if note.y_holding_end - note.y_holding_start + 10 > note.rect.height : return combo + 1
+            if note.y_holding_end - note.y_holding_start + 10*note.ratio > note.rect.height : 
+                note.updating = False
+                return combo + 1
             else: return combo
         else: return combo + 1
         
