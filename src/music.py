@@ -113,7 +113,7 @@ class ItaloMusic(Music):
                      0, 0, 0, 1, 0, 2, 1, 2, 1, 0, 1, 3, 2, 2, 3, 2, 2, 3, 2, 0, 1, 0, 0, 3, 1, 2, 3, 2, 1, 1, 2, 2, 2, 1, 
                      2, 1, 0, 1, 0]
         slow_notes = [8, 17, 42, 43, 44]
-        slow_heights = [600, 600, 300, 100, 100]
+        slow_heights = [24, 24, 12, 5, 5]
         return self.int_to_notes(playgrounds[0].key_fields, ints_list, slow_notes, slow_notes_height=slow_heights)
 
 
