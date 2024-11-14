@@ -36,6 +36,7 @@ class Note(ABC):
     def reset(self):
         self.destructed = False
         self.updating = True
+        
     
 class FastNote(Note):
     def __init__(self, field : keyfields.KeyField, speed=1, intervals=[[0, 10, 20], [5, 3, 1]]):
@@ -46,20 +47,18 @@ class FastNote(Note):
         self.points_args = [field.rect.y] 
 
     def draw_rect(self, display):
-        
         if self.updating == True and self.destructed == False:
             if abs(self.rect.y - self.field.rect.y) <= 10*self.ratio:
                 pg.draw.rect(display, (255,255,255), self.rect)
-                #print(self.time_interval)
             else:
                 pg.draw.rect(display, self.color, self.rect)
 
-    def update(self,speed, starting_pos):
+    def update(self, speed, starting_pos, label_duration):
             self.rect.centerx = self.field.rect.centerx
             self.rect.width, self.rect.height = self.calculate_size()
+            
 
             self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed#+= self.speed
-            
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True
                 
@@ -90,24 +89,26 @@ class SlowNote(Note):
         self.pressed = False
         self.y_holding_start = 0
         self.y_holding_end = 0
+        
+        self.top_selected = False
 
     def draw_rect(self, display):
         if self.updating == True:# and self.destructed == False:
             pg.draw.rect(display, self.color, self.rect)
 
-    def update(self, speed, starting_pos):
+    def update(self, speed, starting_pos, label_duration):
+        self.speed = speed
         self.rect.centerx = self.field.rect.centerx
         self.rect.width, self.rect.height = self.calculate_size()
-
-        self.rect.bottom = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed 
+        self.rect.height = (round((self.rect.height*self.speed)/label_duration))*label_duration/self.speed + self.rect.width
+        self.rect.bottom = self.field.rect.bottom- (self.calculate_time_gap(starting_pos))/speed 
+        
         
         if self.field.rect.bottom + 50*self.ratio < self.rect.top:# and not self.pressed:
             self.pressed = False
             self.destructed = True
                 
     def calculate_points(self):
-        print(self.y_holding_end - self.y_holding_start + 10*self.ratio , self.rect.height,
-              self.destructed, self.updating,self.pressed)
         if self.y_holding_end - self.y_holding_start + 10*self.ratio > self.rect.height : 
             return 5
         else: return 0
@@ -143,7 +144,7 @@ class FakeNote(Note):
         if self.destructed == False:
             pg.draw.rect(display, self.color, self.rect)
 
-    def update(self,speed, starting_pos):
+    def update(self,speed, starting_pos, label_duration):
         if self.updating:
             self.rect.centerx = self.field.rect.centerx
             self.rect.width, self.rect.height = self.calculate_size()
@@ -152,8 +153,10 @@ class FakeNote(Note):
 
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True
-                self.field.points += 1
+                #self.field.points += 1
                 self.updating = False
+                
+                
 
     def calculate_points(self):
         return -1

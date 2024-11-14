@@ -11,9 +11,15 @@ screen = pg.display.set_mode((screen_size[1], screen_size[0]), pg.RESIZABLE)
 
 clock = pg.time.Clock()
 
-# dev = dv.DevMode("Musica1", active=True)
-# print(dev.music_list[1].notes_list)
-players = 1
+dev_i = int(input("Enter creation mode (to create your music, edit src/config/music_test.json)?\n 1. Yes\n 2. No\nInput your answer: "))
+dev = True if dev_i == 1 else False
+
+if not dev: 
+    music = int(input("Select a music:\n 0. Italo\n 1. Tropicala\n 2. Stakes\nInput your answer: "))
+
+
+if not dev: players = int(input("Number of players (1 or 2): "))
+else: players = 1
 mult = [True, 1]
 if players == 1:
     mult[0] = False
@@ -29,14 +35,16 @@ elif players == 2:
 
 for i in range(players):
     if mult[0]: mult[1] = mult[1] + i
-    #musicas.append(dev.music_list[1])
-    #musicas.append(ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", keys=keys[i], multiplayer=mult))
-    #musicas.append(ms.StardewMusic("./Tropicalia-short.mp3", keys=keys[i], multiplayer=mult))
-    musicas.append(ms.StakesMusic("./FullScores/Retro Scores/Ove Melaa - High Stakes,Low Chances.mp3"))
-    rounds.append(cr.CurrentRound(music=musicas[i], switch_key=keys[i][1]))
+    if dev: 
+        musicas.append(3)
+    else:
+        if music == 0: musicas.append(ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", keys=keys[i], multiplayer=mult))
+        elif music == 1: musicas.append(ms.StardewMusic("./Tropicalia-short.mp3", keys=keys[i], multiplayer=mult))
+        else: musicas.append(ms.StakesMusic("./FullScores/Retro Scores/Ove Melaa - High Stakes,Low Chances.mp3", keys=keys[i], multiplayer=mult))
+    rounds.append(cr.CurrentRound(music=musicas[i], switch_key=keys[i][1], dev=dev))
     resizes.append(False)
 
-# rounds = [cr.CurrentRound(music=dev.active_music, switch_key=keys[0][1])]
+# rounds = [cr.CurrentRound(music=3, switch_key=keys[0][1], dev=dev)]
 # resizes = [False]
 
 rounds[0].start_round()

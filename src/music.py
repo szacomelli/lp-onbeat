@@ -5,7 +5,9 @@ import keyfields as kf
 import playground as pgr
 
 class Music:
-    def __init__(self, file, speed=0, multiplayer=[False,1]):
+    def __init__(self, file, speed=0, bpm=120, multiplayer=[False,1]):
+        self.bpm = bpm
+        self.label_duration = 60000/(4*self.bpm)
         self.file_path = file
         self.time_intervals = self.create_intervals()
         self.notes_list = []
@@ -33,7 +35,7 @@ class Music:
             volume = 0.5
         pg.mixer.music.set_volume(volume)
         pg.mixer.music.load(self.file_path)
-        pg.mixer.music.play()
+        pg.mixer.music.play(start=0)
         #pg.mixer.music.set_volume(0)
         
         if self.has_panning: self.channel.play(self.song)
@@ -48,11 +50,11 @@ class Music:
             notes_list.append(nt.FastNote(key_fields[i]))
         for j in slow_notes_indexes:
             kf = key_fields.index(notes_list[j].field)
-            notes_list.insert(j, nt.SlowNote(key_fields[kf], height=slow_notes_height[slow_notes_indexes.index(j)]))
+            notes_list.insert(j, nt.SlowNote(key_fields[kf], height=key_fields[kf].rect.width*(1-1/6)*slow_notes_height[slow_notes_indexes.index(j)]))
             notes_list.pop(j+1)
         for k in fake_notes_indexes:
             kf = key_fields.index(notes_list[k].field)
-            notes_list.insert(j, nt.FakeNote(key_fields[kf]))
+            notes_list.insert(k, nt.FakeNote(key_fields[kf]))
             notes_list.pop(k+1)
         return notes_list
     
@@ -100,7 +102,7 @@ class ItaloMusic(Music):
                          52000, 52250, 52500, 52750, 52875, 53250, 53375, 53500, 53750, 53875, 
                          54000, 54250, 54500, 54875, 55000, 55250, 55375, 55500, 55750, 56000, 
                          56250, 56500, 56750, 56875, 57250, 57375, 57500, 57750]
-        return [intervals]
+        return intervals
 
     def create_notes(self, playgrounds):
         ints_list = [0, 0, 1, 2, 1, 3, 3, 2, 0, 0, 0, 1, 2, 1, 3, 3, 3, 2, 0, 0, 1, 2, 1, 3, 3, 3, 0, 0, 1, 2, 1, 3, 3, 3, 
@@ -120,13 +122,12 @@ class StardewMusic(Music):
     def __init__(self, file, speed=2, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]], multiplayer=[False,1]):
         super().__init__(file, multiplayer=multiplayer)
         
-        pg_numbers = [2,1]
+        pg_numbers = [1,1]
         if multiplayer[0]:
             pg_numbers[1] = pg_numbers[0]*(multiplayer[1]-1) + 1
             pg_numbers[0] = pg_numbers[0]*2
         
-        self.playgrounds = [pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers),
-                            pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=[2,2])]
+        self.playgrounds = [pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers)]
         self.speed = speed
         self.notes_list = self.create_notes(self.playgrounds)
         self.total_notes = len(self.notes_list)
@@ -172,13 +173,13 @@ class StardewMusic(Music):
                      106875, 107000, 107125, 107375, 107500, 107750, 108000, 108000, 108250, 
                      108625, 108875, 109000, 109125, 109250, 109500, 109750, 110000, 110000, 
                      110250, 110500, 110750, 110875]
-        return [intervals]
+        return intervals
     
     def create_notes(self, playgrounds : list[pgr.Playground]):
         notes = []
         last = 0
         inc = 0
-        for i in self.time_intervals[0]:
+        for i in self.time_intervals:
             if ((i > 15000 and i < 15625) or (i > 23000 and i < 23501)):
                 notes.append(nt.FastNote(playgrounds[0].key_fields[1+inc]))
                 inc = (inc + 1) % 2
@@ -198,7 +199,7 @@ class StardewMusic(Music):
     
 class StakesMusic(Music):
     def __init__(self, file, speed=2, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]], multiplayer=[False,1]):
-        super().__init__(file, speed,multiplayer)
+        super().__init__(file, speed, 111, multiplayer)
         self.has_panning = True
         
         pg_numbers = [2,1]

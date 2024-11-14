@@ -10,24 +10,24 @@ class CurrentRound:
         self.screen_size = screen_size
         self.active_playground = 0
         self.music_start_pos = 0
-        self.dev = devmode.DevMode("Musica1", dev)
+        self.dev = devmode.DevMode("Musica1", active=dev)
         
         
-        self.music = music
-        self.speed = music.speed
-        self.notes_to_play = music.notes_list
-        self.notes_interval = music.time_intervals
-        self.notes_played = []
+        if dev: self.music = self.dev.active_music
+        else: self.music = music
+        self.speed = self.music.speed
+        self.notes_to_play = self.music.notes_list
+        self.notes_interval = self.music.time_intervals
         self.start_index = 0
         self.stop_index = -1
         self.max_index = len(self.notes_to_play) - 1
         
         self.total_points = 0
         self.combo = 0
-        self.combo_mult_scores = [0, music.total_notes*0.05, music.total_notes*0.1, music.total_notes*0.3]
+        self.combo_mult_scores = [0, self.music.total_notes*0.05, self.music.total_notes*0.1, self.music.total_notes*0.3]
         
         self.text_x = 0
-        if music.multiplayer_info[0] and self.music.multiplayer_info[1] == 2:
+        if self.music.multiplayer_info[0] and self.music.multiplayer_info[1] == 2:
             self.text_x = screen_size[1] - 80
         self.text_y = [0,30]
         self.text_font = 20
@@ -44,18 +44,20 @@ class CurrentRound:
 
     def on_event(self, event):
         if self.dev.active:
-            self.dev.dev_shorts(event, self.notes_to_play, self.stop_index, self.music_time_update, self.music_start_pos, self.change_music)        
+            self.dev.dev_shorts(event, self.notes_to_play, self.max_index, self.stop_index, self.round_callback, self.music_start_pos, self.change_music)        
         if event.type == pg.KEYDOWN:
             if event.key == self.switch_key:
                 self.active_playground = (self.active_playground + 1) % len(self.music.playgrounds)
                 
-    def music_time_update(self,music_start_pos,restart_index):
+    def round_callback(self, music_start_pos, restart_index, decrease_stop_index):
         if restart_index: self.start_index = 0
         self.music_start_pos = music_start_pos
+
+        if decrease_stop_index: self.stop_index -= 1
+        
                        
     def play_notes(self):
-        
-        while self.stop_index != self.max_index and pg.mixer.music.get_pos() + self.music_start_pos + self.screen_size[0]*self.speed>= self.notes_interval[self.stop_index + 1]:
+        while self.stop_index != self.max_index and pg.mixer.music.get_pos() + self.music_start_pos + (2000/480)*self.screen_size[0] >= self.notes_interval[self.stop_index + 1]:
             self.stop_index += 1
             self.notes_to_play[self.stop_index].time_interval = self.notes_interval[self.stop_index]
     
@@ -64,9 +66,13 @@ class CurrentRound:
             for key_fields in playground.key_fields:
                 key_fields.draw_rect(screen)
 
-
+        
         for i in range(self.start_index, self.stop_index+1, 1):
+            
             self.notes_to_play[i].draw_rect(screen)
+            
+        if self.dev.active: self.dev.draw_selection(screen, self.notes_to_play, self.music_start_pos, self.stop_index, self.round_callback)
+        
             
         if self.dev.active: self.dev.draw(screen, self.music_start_pos, self.text_font)
         screen.blit(self.combo_txt, (self.text_x, self.text_y[0]))
@@ -101,21 +107,26 @@ class CurrentRound:
         if self.dev.active:
             self.music_start_pos = 0
             
+            
             self.music = self.dev.active_music
-            self.speed = self.music.speed
-            self.notes_to_play = self.music.notes_list
+            self.notes_to_play = self.music.notes_list.copy()
             self.notes_interval = self.music.time_intervals
             self.start_index = 0
             self.stop_index = -1
             self.max_index = len(self.notes_to_play) - 1
-            
             self.total_points = 0
             self.combo = 0
             self.combo_mult_scores = [0, self.music.total_notes*0.05, self.music.total_notes*0.1, self.music.total_notes*0.3]
             
+            for note in self.notes_to_play:
+                note.rect.y = 0 - 25*(note.rect.height/25)
+            
+            self.music.play_music()
+            
             self.start_round()
             
-        return
+            
+        
     
     def calculate_combo_multiplier(self, combo):
         if combo >= self.combo_mult_scores[0] and combo < self.combo_mult_scores[1]: return 1
@@ -143,13 +154,21 @@ class CurrentRound:
         if self.start_index != -1:             
             for i in range(self.start_index,self.stop_index+1,1):
                 note = self.notes_to_play[i]
-                note.update(self.speed, self.music_start_pos)
+                note.update(self.speed, self.music_start_pos, self.music.label_duration)
+                if self.dev.active:
+                        if i > self.dev.max_visible_index and note.rect.y > 0 and note.rect.y < self.notes_to_play[self.dev.max_visible_index].rect.y: 
+                            self.dev.max_visible_index = i
+                        if i < self.dev.min_visible_index and (note.rect.y < note.field.rect.y) and note.rect.y > self.notes_to_play[self.dev.min_visible_index].rect.y: 
+                            self.dev.min_visible_index = i
                 if note.destructed:
                     if note.updating:
                         self.combo = 0
                         self.total_points -= 1
                     self.start_index += 1
                     note.reset()
+                #else:
+        
+                    
 
         if self.music.has_panning:
             self.music.update()
