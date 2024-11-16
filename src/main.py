@@ -1,57 +1,66 @@
 import pygame as pg
-from threading import Timer as tm
-import notes as nt, keyfields as kf, actualround as ar, music as ms
-import screen_classes as sc
+import currentround as cr, music as ms, playground as pgr
 
 pg.mixer.pre_init(44100, channels=2, buffer=512)
 pg.mixer.init()
 pg.init()
 
-SCREEN_WIDTH = 640
-SCREEN_HEIGHT = 480
-screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-
+screen_size = [480,640]
+screen = pg.display.set_mode((screen_size[1], screen_size[0]), pg.RESIZABLE)
 
 clock = pg.time.Clock()
-a = [0, 2, 7, 13]
-key_fields = [kf.KeyField(100, 400, (255, 0, 0), (220, 0, 0), pg.K_s),
-              kf.KeyField(200, 400, (0, 255, 0), (0, 220, 0), pg.K_d), 
-              kf.KeyField(300, 400, (0, 0, 255), (0, 0, 220), pg.K_k), 
-              kf.KeyField(400, 400, (255, 255, 0), (220, 220, 0), pg.K_l)]
+
+players = 1
+mult = [True, 1]
+if players == 1:
+    mult[0] = False
+
+musicas = []
+rounds = []
+resizes = []
+
+if players == 1:
+    keys=[[[pg.K_s,pg.K_d,pg.K_k,pg.K_l], pg.K_SPACE]]
+elif players == 2:
+    keys=[[[pg.K_q,pg.K_w,pg.K_e,pg.K_r], pg.K_z],[[pg.K_o,pg.K_p,pg.K_LEFTBRACKET,pg.K_RIGHTBRACKET],pg.K_PERIOD]]
+
+for i in range(players):
+    if mult[0]: mult[1] = mult[1] + i
+    musicas.append(ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", keys=keys[i], multiplayer=mult))
+    # musicas.append(ms.StardewMusic("./Tropicalia-short.mp3", keys=keys[i], multiplayer=mult))
+    rounds.append(cr.CurrentRound(music=musicas[i], switch_key=keys[i][1]))
+    resizes.append(False)
 
 
-musica = ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", key_fields)
-round = ar.ActualRound(key_fields, musica)
-
- #+ notes_refrao.copy() + notes_refrao.copy() + notes_refrao.copy()
-
-# round.start_round()
-
-print(pg.mixer.get_init())
-
-
+rounds[0].start_round()
+#pg.mixer.music.set_volume(0)
 running = True
-running = sc.Welcome_screen((SCREEN_WIDTH,SCREEN_HEIGHT),running, clock).run()
-round.start_round()
-
+resize1 = False
+resize2=False
 while running:
     for event in pg.event.get():
+        for round in rounds:
+            round.on_event(event)
         if event.type == pg.QUIT:
             running = False
-        if event.type == pg.KEYUP:
-            round.SlowKey_held_reset(event.key)
-
-    round.play_notes()
-
-    screen.fill((0, 0, 0))  # clears the screen
+        if event.type == pg.VIDEORESIZE:
+            for i in range(players):
+                resizes[i] = True
+        
+    for round in rounds:
+        round.play_notes()
     
-    keys = pg.key.get_pressed()
+    screen.fill((0, 0, 0))  # clears the screen
+
+    keys_pressed = pg.key.get_pressed()
     undone = False
-    round.draw_objects(keys, screen)
+    
+    for round in rounds:
+        round.draw_objects(screen, keys_pressed)
+    
 
-
-    round.update(keys)
+    for i in range(players):
+        resizes[i] = rounds[i].update(keys_pressed,screen,resizes[i])
 
     pg.display.flip()  # updates the screen
     clock.tick(60)

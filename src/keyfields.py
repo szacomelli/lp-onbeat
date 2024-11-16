@@ -1,62 +1,27 @@
+from pathlib import Path
 import pygame as pg
 import notes
+import os
 
 class KeyField:
-    def __init__(self, x, y, unpressed_color, pressed_color, key, mult_scores=[0, 0, 0, 0]):
-        size = 30
-        interior_size = size-5
-        bias = -interior_size + size
+    def __init__(self, x: int, y: int, unpressed_color, pressed_color, key: int, sprite_path: str, size: int = 30):
+        interior_size = size - size * (1 / 6)
+        self.bias = size - interior_size
         self.rect = pg.Rect(x, y, size, size)
-        self.interior_rect = pg.Rect((x+bias/2),y+bias/2, interior_size, interior_size)
         self.unpressed_color = unpressed_color
         self.pressed_color = pressed_color
+        
         self.key = key
         self.pressed = False
-        self.points = 0
-        self.combo = 0 #unused
-        self.last_tick = 0
-        self.combo_multiplier_scores = mult_scores
-        self.last_note = None
-
-    def draw_rect(self, display):
-        if self.pressed == True:
-            pg.draw.rect(display, self.pressed_color, self.rect)
-            pg.draw.rect(display, (0,0,0), self.interior_rect)
-        else:
-            pg.draw.rect(display, self.unpressed_color, self.rect)
-            pg.draw.rect(display, (0,0,0), self.interior_rect)
-
-    def on_key_press(self, keys, notes_list, combo : int):
-        if keys[self.key] and not self.pressed:
-            print(pg.time.get_ticks())
-            note_idx = self.rect.collidelist(notes_list)
-            
-            if note_idx != -1:
-                actual_note = notes_list[note_idx]
-                if actual_note.note_ended():  self.pressed = True
-                self.points += actual_note.calculate_points(*actual_note.points_args)*self.calculate_combo_multiplier()
-                print(actual_note.calculate_points(*actual_note.points_args))
-                if actual_note.note_ended():
-                    notes_list[note_idx].updating = False
-                    notes_list.pop(note_idx)
-
-                    if self.detect_FakeNote(actual_note): 
-                        return 0
-                    
-                is_SlowNote = isinstance(actual_note, notes.SlowNote)
-                actual_tick = pg.time.get_ticks()
-                return self.detect_SlowNote(actual_note, is_SlowNote, actual_tick, combo)
-
-            else:
-                self.pressed = True
-                return 0
-        return combo
-    
-    def calculate_combo_multiplier(self):
-        if self.combo >= self.combo_multiplier_scores[0] and self.combo < self.combo_multiplier_scores[1]: return 1
-        elif self.combo >= self.combo_multiplier_scores[1] and self.combo < self.combo_multiplier_scores[2]: return 2
-        elif self.combo >= self.combo_multiplier_scores[2] and self.combo < self.combo_multiplier_scores[3]: return 3
-        elif self.combo >= self.combo_multiplier_scores[3]: return 4
+        self.sprite = MakeSprite(self.rect, sprite_path)
+        
+    def draw(self, display):
+        self.sprite.draw(display)
+        
+        # if self.pressed == True:
+        #     pg.draw.rect(display, self.pressed_color, self.rect, width=1)
+        # else:
+        #     pg.draw.rect(display, self.unpressed_color, self.rect, width=int(self.bias/2))
 
     def detect_FakeNote(self, note):
         if isinstance(note, notes.FakeNote): 
@@ -64,18 +29,31 @@ class KeyField:
         else: 
             return False
 
-    def detect_SlowNote(self, note, is_SlowNote, actual_tick, combo):
-        if is_SlowNote:
+    def detect_SlowNote(self, note, combo):
+        if isinstance(note, notes.SlowNote):
+            if note.pressed == False: note.y_holding_start = note.rect.y
             note.pressed = True
-            if note.calculate_delay_end(actual_tick, self.last_tick): 
-                self.last_tick = actual_tick
-                return combo + 1
-            else: 
-                return combo
+            if note.y_holding_end - note.y_holding_start + 10 > note.rect.height : return combo + 1
+            else: return combo
         else: return combo + 1
-        
+
     def update(self, keys):
         if not keys[self.key]:
             self.pressed = False
-        if self.points < 0:
-            self.points = 0
+
+class MakeSprite:
+    def __init__(self, rect, sprite_path):
+        self.sprite = pg.image.load(sprite_path).convert_alpha()
+        self.rect = rect
+
+    @classmethod
+    def load_sprites(cls, filepath: str) -> list:
+        sprite_paths = []
+        for sprite_file in Path(filepath).iterdir():
+            if sprite_file.is_file():
+                sprite_paths.append(str(sprite_file))  # Adiciona o caminho do arquivo
+        return sprite_paths
+    
+    def draw(self, display):
+        scaled_sprite = pg.transform.scale(self.sprite, self.rect.size)
+        display.blit(scaled_sprite, self.rect.topleft)

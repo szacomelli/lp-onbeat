@@ -1,9 +1,11 @@
 import pygame as pg
-import keyfields
+import keyfields as kf
 from abc import ABC, abstractmethod
+from pathlib import Path
+
 
 class Note(ABC): 
-    def __init__(self, field : keyfields.KeyField, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
+    def __init__(self, field : kf.KeyField, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
         self.color = field.unpressed_color
         self.speed = speed
         self.destructed = False
@@ -12,9 +14,10 @@ class Note(ABC):
         self.point_intervals = intervals
         self.points_args = []
         self.time_interval = 0
+        self.ratio = 1
 
     @abstractmethod
-    def draw_rect(self):
+    def draw(self):
         raise NotImplementedError("You should implement this method")
     
     @abstractmethod
@@ -29,98 +32,120 @@ class Note(ABC):
     def note_ended(self):
         raise NotImplementedError("You should implement this method")
     
+    def calculate_time_gap(self):
+        return self.time_interval - pg.mixer.music.get_pos() 
+    
 class FastNote(Note):
-    def __init__(self, field : keyfields.KeyField, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
+    def __init__(self, field : kf.KeyField, id, speed=1, intervals=[[0, 10, 20], [5, 3, 1]]):
         super().__init__(field, speed, intervals)
-        size = 25
-        self.rect = pg.Rect(field.rect.centerx - size/2, 0 - size, size, size)
-        self.points_args = [field.rect.y] 
+        size = self.field.rect.width*(1-1/2)
+        self.y_spawn = 0 - size
+        self.rect = pg.Rect(field.rect.centerx - size/2, self.y_spawn, size, size)
+        self.points_args = [field.rect.y]
 
-    def draw_rect(self, display):
-        if self.rect.y - self.field.rect.y <= 10 and self.rect.y - self.field.rect.y >= -5:
-            pg.draw.rect(display, (255,255,255), self.rect)
-            #print(pg.mixer_music.get_pos())
-        elif self.destructed == False:
-            pg.draw.rect(display, self.color, self.rect)
+        sprite_path = kf.MakeSprite.load_sprites("./assets/notes/fastnotes/")[id]
+        self.sprite = kf.MakeSprite(self.rect, sprite_path)
 
-    def update(self):
+    def draw(self, display):
+        if self.destructed == False:
+            # Adicionando o desenho da sprite
+            # pg.draw.rect(display, self.color, self.rect)
+            self.sprite.draw(display)
+
+    def update(self,speed):
         if self.updating:
-            self.rect.y = self.field.rect.y - (self.time_interval - pg.time.get_ticks())/self.speed#+= self.speed
-            #print(self.rect.y)
+            self.rect.centerx = self.field.rect.centerx
+            self.rect.width, self.rect.height = self.calculate_size()
+
+            self.rect.y = self.field.rect.y - (self.calculate_time_gap())/speed#+= self.speed
+            
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True
-                self.field.points -= 1
                 self.updating = False
 
-    def calculate_points(self, field_y):
-        bias = field_y - self.rect.y
+    def calculate_points(self):
+        bias = self.field.rect.y - self.rect.y
         if bias <= self.point_intervals[0][0] and bias >= -self.point_intervals[0][0]: return self.point_intervals[1][0]
         elif bias <= self.point_intervals[0][1] and bias >= -self.point_intervals[0][1]: return self.point_intervals[1][1]
         elif bias <= self.point_intervals[0][2] and bias >= -self.point_intervals[0][2]: return self.point_intervals[1][2]
         else: return 1
 
+    def calculate_size(self):
+        return (self.field.rect.width*(5/6),self.field.rect.height*(5/6))
+
     def note_ended(self):
         return True
 
 class SlowNote(Note):
-    def __init__(self, field : keyfields.KeyField, speed=2,intervals=[[0, 10, 20], [5, 3, 1]], height=150):
+    def __init__(self, field : kf.KeyField, speed=1,intervals=[[0, 10, 20], [5, 3, 1]], height=150):
         super().__init__(field, speed, intervals)
         self.height = height
-        self.pressed = False
-        self.rect = pg.Rect(field.rect.x + 5, 0 - height, 20, height)
-        self.time_held = 0
-        self.ticks_per_third = round(height / (speed*3))
+        width = self.field.rect.width*(1-1/6)
+        self.height_ratio = height/width
+        
+        self.y_spawn = 0 - height
+        self.rect = pg.Rect(field.rect.centerx - width/2, self.y_spawn, width, height)
 
-    def draw_rect(self, display):
+        self.pressed = False
+        self.y_holding_start = 0
+        self.y_holding_end = 0
+
+    def draw(self, display):
         if self.destructed == False:
             pg.draw.rect(display, self.color, self.rect)
 
-    def update(self):
+    def update(self, speed):
         if self.updating:
-            self.rect.y = self.field.rect.y - self.height - (self.time_interval - pg.time.get_ticks())/self.speed
-            if self.field.rect.bottom + 50 < self.rect.top and not self.pressed:
-                print((self.time_interval - pg.time.get_ticks())/self.speed, self.field.rect.bottom - self.rect.top)
+            self.rect.centerx = self.field.rect.centerx
+            self.rect.width, self.rect.height = self.calculate_size()
+
+            self.rect.bottom = self.field.rect.y - (self.calculate_time_gap())/speed 
+            
+            if self.field.rect.bottom + 50*self.ratio < self.rect.top and not self.pressed:
                 self.destructed = True
-                self.field.points -= 1
                 self.updating = False
                 
     def calculate_points(self):
-        self.time_held += 1
-
-        if self.time_held == self.ticks_per_third:
-            return 1
-        if self.time_held == 2*self.ticks_per_third:
-            return 3
-        if self.time_held == 3*self.ticks_per_third:
-            return 5
+        if self.y_holding_end - self.y_holding_start + 10 > self.rect.height : return 5
         else: return 0
 
-    def calculate_delay_end(self, actual_tick, last_tick):
-        seconds_per_third = self.ticks_per_third*1000/30 # how many seconds it takes to move a third of the note
-        if actual_tick > last_tick + seconds_per_third: return True
-        else: return False
+    def calculate_size(self):
+        return (self.field.rect.width,self.field.rect.width*self.height_ratio)
     
     def note_ended(self):
-        if self.rect.top + 50 >= self.field.rect.bottom:
+        
+        if self.rect.top + self.ratio*10 >= self.field.rect.bottom:
+            self.y_holding_end = self.rect.y
             return True
         else:
             return False
 
 class FakeNote(Note):
-    def __init__(self, field : keyfields.KeyField, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
+    def __init__(self, field : kf.KeyField, id, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
         super().__init__(field, speed, intervals)
-        height = 20
-        self.rect = pg.Rect(field.rect.x + 5, 0 - height, 20, height)
+        height = self.field.rect.width - self.field.bias
+        self.y_spawn = 0 - height
+        self.rect = pg.Rect(field.rect.x + 5, self.y_spawn, 20, height)
         self.color = tuple(element/2 for element in self.field.unpressed_color)
+
+        sprite_path = kf.MakeSprite.load_sprites("./assets/notes/fakenotes/")[id]
+        self.sprite = kf.MakeSprite(self.rect, sprite_path)
         
 
-    def draw_rect(self, display):
+    def draw(self, display):
         if self.destructed == False:
-            pg.draw.rect(display, self.color, self.rect)
+            # Adicionando desenho da sprite
+            # pg.draw.rect(display, self.color, self.rect)
+            self.sprite.draw(display)
+            
 
-    def update(self):
+    def update(self,speed):
         if self.updating:
-            self.rect.y = self.field.rect.y - (self.time_interval - pg.time.get_ticks())/self.speed
+            self.rect.centerx = self.field.rect.centerx
+            self.rect.width, self.rect.height = self.calculate_size()
+
+            self.rect.y = self.field.rect.y - (self.calculate_time_gap())/speed
+
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True
                 self.field.points += 1
@@ -128,6 +153,9 @@ class FakeNote(Note):
 
     def calculate_points(self):
         return -1
+    
+    def calculate_size(self):
+        return (self.field.rect.width,self.field.rect.height)
     
     def note_ended(self):
         return True
