@@ -6,6 +6,7 @@ pg.mixer.pre_init(44100, channels=2, buffer=512)
 pg.mixer.init()
 pg.init()
 
+
 screen_size = [480,640]
 screen = pg.display.set_mode((screen_size[1], screen_size[0]), pg.RESIZABLE)
 
@@ -13,6 +14,18 @@ clock = pg.time.Clock()
 
 dev_i = int(input("Enter creation mode (to create your music, edit src/config/music_test.json)?\n 1. Yes\n 2. No\nInput your answer: "))
 dev = True if dev_i == 1 else False
+
+if dev: music_name = input("Input the name of the music\n (if you input an invalid name a new music will be created)\
+    \n (input e to edit a music): ") 
+else: music_name = "Musica2"
+
+if music_name == "e": 
+    editing_music = True 
+    music_name = input("Name the music to edit: ")
+else: editing_music = False
+
+
+
 
 if not dev: 
     music = int(input("Select a music:\n 0. Italo\n 1. Tropicala\n 2. Stakes\nInput your answer: "))
@@ -41,7 +54,7 @@ for i in range(players):
         if music == 0: musicas.append(ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", keys=keys[i], multiplayer=mult))
         elif music == 1: musicas.append(ms.StardewMusic("./Tropicalia-short.mp3", keys=keys[i], multiplayer=mult))
         else: musicas.append(ms.StakesMusic("./FullScores/Retro Scores/Ove Melaa - High Stakes,Low Chances.mp3", keys=keys[i], multiplayer=mult))
-    rounds.append(cr.CurrentRound(music=musicas[i], switch_key=keys[i][1], dev=dev))
+    rounds.append(cr.CurrentRound(music=musicas[i], switch_key=keys[i][1], dev=dev, music_name=music_name, editing_music=editing_music))
     resizes.append(False)
 
 # rounds = [cr.CurrentRound(music=3, switch_key=keys[0][1], dev=dev)]

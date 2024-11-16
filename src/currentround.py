@@ -6,11 +6,11 @@ import playground
 import devmode
 
 class CurrentRound:
-    def __init__(self,  music : music.Music, screen_size=[480,640], switch_key=pg.K_SPACE, dev=False):
+    def __init__(self,  music : music.Music, screen_size=[480,640], switch_key=pg.K_SPACE, dev=False, music_name="Musica2", editing_music=False):
         self.screen_size = screen_size
         self.active_playground = 0
         self.music_start_pos = 0
-        self.dev = devmode.DevMode("Musica2", active=dev)
+        self.dev = devmode.DevMode(music_name, active=dev, editing_music=editing_music)
         
         
         if dev: self.music = self.dev.active_music

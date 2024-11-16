@@ -68,11 +68,22 @@ class PlayerMusic(music.Music):
         note_list = self.int_to_notes(playgrounds[0].key_fields,self.columns,self.slow_notes,self.fake_notes,self.slow_heights)
         return note_list
 
+d = {
+    "oi" : 2,
+    "boi" : 3
+}
+d.update()
+d.keys().isdisjoint
+
 class DevMode:
     
     def __init__(self, music_name, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]],dkeys=[pg.K_LSHIFT, pg.K_q, pg.K_e, pg.K_r, pg.K_m, pg.K_LEFT, pg.K_RIGHT,
-                                                                               pg.K_UP, pg.K_DOWN, pg.K_RETURN, pg.K_DELETE, pg.K_INSERT, pg.K_p], active=False):
+                                                                               pg.K_UP, pg.K_DOWN, pg.K_RETURN, pg.K_DELETE, pg.K_INSERT, pg.K_p], active=False, editing_music=False):
         self.configs = self.read_configs()
+        
+        if editing_music: self.edit_music(music_name)
+        if self.configs.keys().isdisjoint([music_name]): self.new_music(music_name)
+        
         self.music = music_name
         self.active = active
         self.developer_keys = dkeys
@@ -94,6 +105,38 @@ class DevMode:
         self.editing_note = False
         self.max_visible_index = 0
         self.min_visible_index = 0
+    
+    def edit_music(self, name):
+        self.configs[name]["music_file"] = input("new music file path: ")
+        self.configs[name]["speed"] = int(input("new speed: "))
+        self.configs[name]["BPM"] = int(input("new bpm: "))
+        self.write_configs(self.configs)
+    
+    def new_music(self, name):
+            bpm = input("music bpm: ")
+            speed = input("music speed: ")
+            path = input("path (relative to the game folder lp-onbeat): ")
+            self.configs[name] = {
+            "music_file": "./",
+            "BPM": 0,
+            "labels": [],
+            "notes": [],
+            "keyfields": [],
+            "slow_notes": [],
+            "slow_durations": [],
+            "fake_notes": [],
+            "speed": 1
+        }
+            self.configs[name]["music_file"] = path
+            self.configs[name]["speed"] = int(speed)
+            self.configs[name]["keyfields"] = []
+            self.configs[name]["labels"] = []
+            self.configs[name]["BPM"] = int(bpm)
+            self.configs[name]["fake_notes"] = []
+            self.configs[name]["slow_notes"] = []
+            self.configs[name]["slow_durations"] = []
+            self.write_configs(self.configs)
+    
         
     def dev_shorts(self, event, notes_to_play, max_index, stop_index, round_callback, music_start_pos, change_music):
         
