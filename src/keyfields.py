@@ -52,7 +52,7 @@ class MakeSprite:
         for sprite_file in Path(filepath).iterdir():
             if sprite_file.is_file():
                 sprite_paths.append(str(sprite_file))  # Adiciona o caminho do arquivo
-        return sprite_paths
+        return sorted(sprite_paths)
     
     def draw(self, display):
         scaled_sprite = pg.transform.scale(self.sprite, self.rect.size)

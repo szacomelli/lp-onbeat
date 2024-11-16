@@ -45,7 +45,7 @@ class Music:
             notes_list.append(nt.FastNote(key_fields[i],i))
         for j in slow_notes_indexes:
             kf = key_fields.index(notes_list[j].field)
-            notes_list.insert(j, nt.SlowNote(key_fields[kf], height=slow_notes_height[slow_notes_indexes.index(j)]))
+            notes_list.insert(j, nt.SlowNote(key_fields[kf],kf, height=slow_notes_height[slow_notes_indexes.index(j)]))
             notes_list.pop(j+1)
         for k in fake_notes_indexes:
             kf = key_fields.index(notes_list[k].field)

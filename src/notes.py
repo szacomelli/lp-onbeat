@@ -2,6 +2,7 @@ import pygame as pg
 import keyfields as kf
 from abc import ABC, abstractmethod
 from pathlib import Path
+import os
 
 
 class Note(ABC): 
@@ -38,7 +39,7 @@ class Note(ABC):
 class FastNote(Note):
     def __init__(self, field : kf.KeyField, id, speed=1, intervals=[[0, 10, 20], [5, 3, 1]]):
         super().__init__(field, speed, intervals)
-        size = self.field.rect.width*(1-1/2)
+        size = self.field.rect.width*(1-1/6)
         self.y_spawn = 0 - size
         self.rect = pg.Rect(field.rect.centerx - size/2, self.y_spawn, size, size)
         self.points_args = [field.rect.y]
@@ -71,13 +72,13 @@ class FastNote(Note):
         else: return 1
 
     def calculate_size(self):
-        return (self.field.rect.width*(5/6),self.field.rect.height*(5/6))
+        return (self.field.rect.width,self.field.rect.height)
 
     def note_ended(self):
         return True
 
 class SlowNote(Note):
-    def __init__(self, field : kf.KeyField, speed=1,intervals=[[0, 10, 20], [5, 3, 1]], height=150):
+    def __init__(self, field : kf.KeyField, id, speed=1,intervals=[[0, 10, 20], [5, 3, 1]], height=150):
         super().__init__(field, speed, intervals)
         self.height = height
         width = self.field.rect.width*(1-1/6)
@@ -89,10 +90,30 @@ class SlowNote(Note):
         self.pressed = False
         self.y_holding_start = 0
         self.y_holding_end = 0
+        
+        self.sprite_sections = []
+        num_sprites = int(self.height_ratio)
+        self.sprite_heigth = self.height / num_sprites
+        filepath = "./assets/notes/slownotes/"
+
+        folders = sorted([folder for folder in os.listdir(filepath) if os.path.isdir(os.path.join(filepath, folder))])
+        if not (0 <= id < len(folders)):
+            raise ValueError(f"The 'id={id}' index is out of the valid range (0 to {len(folders) - 1}).")
+        sprite_folder = os.path.join(filepath, folders[id])
+        sprite_files = sorted([file for file in os.listdir(sprite_folder) if os.path.isfile(os.path.join(sprite_folder, file))])
+        sprite_dict = {0: 3, num_sprites - 1: 0, num_sprites // 2: 2}
+
+        for i in range(num_sprites):
+            sprite_rect = pg.Rect(self.rect.x, self.rect.y + i * self.sprite_heigth, width, self.sprite_heigth)
+            sprite_path = os.path.join(sprite_folder, sprite_files[sprite_dict.get(i, 1)])
+            self.sprite_sections.append(kf.MakeSprite(sprite_rect, sprite_path))
 
     def draw(self, display):
         if self.destructed == False:
-            pg.draw.rect(display, self.color, self.rect)
+            # Adicionando desenho da sprite
+            # pg.draw.rect(display, self.color, self.rect)
+            for sprite in self.sprite_sections:
+                sprite.draw(display)
 
     def update(self, speed):
         if self.updating:
@@ -100,10 +121,17 @@ class SlowNote(Note):
             self.rect.width, self.rect.height = self.calculate_size()
 
             self.rect.bottom = self.field.rect.y - (self.calculate_time_gap())/speed 
+
+            sprite_height = self.rect.height / len(self.sprite_sections)
+            for i, sprite in enumerate(self.sprite_sections):
+                sprite.rect.x = self.rect.x
+                sprite.rect.y = self.rect.y + i * sprite_height
+                sprite.rect.width = self.rect.width
+                sprite.rect.height = sprite_height
             
-            if self.field.rect.bottom + 50*self.ratio < self.rect.top and not self.pressed:
-                self.destructed = True
-                self.updating = False
+            # if self.field.rect.bottom + 50*self.ratio < self.rect.top and not self.pressed:
+            #     self.destructed = True
+            #     self.updating = False
                 
     def calculate_points(self):
         if self.y_holding_end - self.y_holding_start + 10 > self.rect.height : return 5
