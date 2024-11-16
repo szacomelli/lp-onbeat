@@ -29,9 +29,10 @@ class VoidMusic(music.Music):
         self.length = a.get_length()
 
 class PlayerMusic(music.Music):
-    def __init__(self, file, speed, int_columns, labels, bpm, fake_notes, slow_notes, slow_heights):
+    def __init__(self, file, speed, int_columns, labels, bpm, fake_notes, slow_notes, slow_heights, file_delay):
         self.paused = False
         
+        self.file_delay = file_delay
         self.bpm = bpm
         self.label_duration = (60000/(4*self.bpm))
         self.columns = int_columns
@@ -61,7 +62,7 @@ class PlayerMusic(music.Music):
         intervals = []
         label_length = 60000/(4*self.bpm)
         for i in self.labels:
-            intervals.append(i*label_length)
+            intervals.append(i*label_length + self.file_delay) 
         return intervals
     
     def create_notes(self, playgrounds : list[pgr.Playground]):
@@ -98,7 +99,8 @@ class DevMode:
                 PlayerMusic(self.configs[self.music]["music_file"], self.configs[self.music]["speed"],
                             self.configs[self.music]["keyfields"], self.configs[self.music]["labels"],
                             self.configs[self.music]["BPM"], self.configs[self.music]["fake_notes"],
-                            self.configs[self.music]["slow_notes"], self.configs[self.music]["slow_durations"])
+                            self.configs[self.music]["slow_notes"], self.configs[self.music]["slow_durations"], 
+                            self.configs[self.music]["file_delay"])
             ]
             self.active_music = self.music_list[self.active_music_idx]
         self.index_selected = 0
@@ -108,16 +110,19 @@ class DevMode:
     
     def edit_music(self, name):
         self.configs[name]["music_file"] = input("new music file path: ")
-        self.configs[name]["speed"] = int(input("new speed: "))
+        self.configs[name]["speed"] = 10/int(input("new speed: "))
         self.configs[name]["BPM"] = int(input("new bpm: "))
+        self.configs[name]["file_delay"] = int(input("new music delay: "))
         self.write_configs(self.configs)
     
     def new_music(self, name):
             bpm = input("music bpm: ")
             speed = input("music speed: ")
             path = input("path (relative to the game folder lp-onbeat): ")
+            delay = input("(moment where the music actually starts, in millisenconds): ")
             self.configs[name] = {
             "music_file": "./",
+            "file_delay" : 0,
             "BPM": 0,
             "labels": [],
             "notes": [],
@@ -128,9 +133,10 @@ class DevMode:
             "speed": 1
         }
             self.configs[name]["music_file"] = path
-            self.configs[name]["speed"] = int(speed)
+            self.configs[name]["speed"] = 10/int(speed)
             self.configs[name]["keyfields"] = []
             self.configs[name]["labels"] = []
+            self.configs[name]["file_delay"] = delay
             self.configs[name]["BPM"] = int(bpm)
             self.configs[name]["fake_notes"] = []
             self.configs[name]["slow_notes"] = []
@@ -445,7 +451,8 @@ class DevMode:
             self.music_list[1] = PlayerMusic(self.configs[self.music]["music_file"], self.configs[self.music]["speed"],
                         self.configs[self.music]["keyfields"], self.configs[self.music]["labels"],
                         self.configs[self.music]["BPM"], self.configs[self.music]["fake_notes"],
-                        self.configs[self.music]["slow_notes"], self.configs[self.music]["slow_durations"])
+                        self.configs[self.music]["slow_notes"], self.configs[self.music]["slow_durations"],
+                        self.configs[self.music]["file_delay"])
             self.music_list[0] = VoidMusic(self.configs[self.music]["music_file"], self.configs[self.music]["speed"], self.BPM)
             pg.time.wait(500)
         self.active_music = self.music_list[self.active_music_idx]
@@ -454,9 +461,9 @@ class DevMode:
     def draw(self, screen : pg.Surface, music_start_pos, font_size):
         
         a = (60000/(4*self.BPM))
-        actual_label = round((pg.mixer.music.get_pos()+music_start_pos)/a)
+        actual_label = round((pg.mixer.music.get_pos()+music_start_pos - self.music_list[1].file_delay)/a)
         font = pg.font.SysFont('Comic Sans MS', font_size*2)
-        text =  font.render(str(actual_label), False, (220, 0, 0))
+        text =  font.render(str(max(0,actual_label)), False, (220, 0, 0))
         screen.blit(text, (self.active_music.playgrounds[0].key_fields[0].rect.x - text.get_width()-30, self.active_music.playgrounds[0].key_fields[0].rect.centery))    
         if self.active_music == self.music_list[0]:
             text =  font.render("Recording", False, (220, 0, 0))
@@ -468,7 +475,7 @@ class DevMode:
         if self.active_music == self.music_list[0] and pg.mixer.music.get_busy():
             self.music_list[0].columns.append(column) 
             a = (60000/(4*self.BPM))
-            label = round((pg.mixer.music.get_pos()+music_start_pos)/a)
+            label = round((pg.mixer.music.get_pos()+music_start_pos-self.music_list[1].file_delay)/a)
             self.music_list[0].labels.append(label)
         
         
