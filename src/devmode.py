@@ -104,11 +104,13 @@ class DevMode:
                     self.active_music.channel.pause()
                     self.active_music.paused = True
                     self.index_selected = self.max_visible_index
+                    
                 else:
                     pg.mixer.music.unpause()
                     self.active_music.channel.unpause()
                     self.active_music.paused = False
                     self.editing_note = False
+                    self.max_visible_index = 0
                 
             if event.key == self.developer_keys[1]:
                     time_back = float(pg.mixer.music.get_pos()/1000) - 1 + music_start_pos/1000
@@ -131,8 +133,19 @@ class DevMode:
 
             if event.key == self.developer_keys[3]:
                 if not self.active_music.paused:
+                    self.max_visible_index = 0
                     pg.mixer.music.play(start=0)
                     round_callback(0, True, False)
+                    
+            if event.key == pg.K_0:
+                pg.mixer.quit()
+                pg.mixer.init(44100, size=-2)
+                self.active_music.play_music()
+            
+            if event.key == pg.K_9:
+                pg.mixer.quit()
+                pg.mixer.init(44100)
+                self.active_music.play_music()
                 
             
             if event.key == self.developer_keys[4]:  

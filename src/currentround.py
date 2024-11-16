@@ -10,7 +10,7 @@ class CurrentRound:
         self.screen_size = screen_size
         self.active_playground = 0
         self.music_start_pos = 0
-        self.dev = devmode.DevMode("Musica1", active=dev)
+        self.dev = devmode.DevMode("Musica2", active=dev)
         
         
         if dev: self.music = self.dev.active_music
@@ -90,8 +90,6 @@ class CurrentRound:
                         key_field.pressed = True
                         notes_list[note_idx].updating = False
                         
-                        
-                        
                         if key_field.detect_FakeNote(actual_note): 
                             self.combo = 0
 
@@ -106,8 +104,6 @@ class CurrentRound:
     def change_music(self):
         if self.dev.active:
             self.music_start_pos = 0
-            
-            
             self.music = self.dev.active_music
             self.notes_to_play = self.music.notes_list.copy()
             self.notes_interval = self.music.time_intervals
@@ -124,9 +120,6 @@ class CurrentRound:
             self.music.play_music()
             
             self.start_round()
-            
-            
-        
     
     def calculate_combo_multiplier(self, combo):
         if combo >= self.combo_mult_scores[0] and combo < self.combo_mult_scores[1]: return 1
@@ -156,6 +149,9 @@ class CurrentRound:
                 note = self.notes_to_play[i]
                 note.update(self.speed, self.music_start_pos, self.music.label_duration)
                 if self.dev.active:
+                        if self.dev.active_music.paused:
+                            note.destructed = False
+                            note.updating = True
                         if i > self.dev.max_visible_index and note.rect.y > 0 and note.rect.y < self.notes_to_play[self.dev.max_visible_index].rect.y: 
                             self.dev.max_visible_index = i
                         if i < self.dev.min_visible_index and (note.rect.y < note.field.rect.y) and note.rect.y > self.notes_to_play[self.dev.min_visible_index].rect.y: 
@@ -165,14 +161,10 @@ class CurrentRound:
                         self.combo = 0
                         self.total_points -= 1
                     self.start_index += 1
-                    note.reset()
-                #else:
-        
-                    
+                    note.reset()        
 
         if self.music.has_panning:
             self.music.update()
-            
 
         if self.total_points < 0: self.total_points = 0
 
