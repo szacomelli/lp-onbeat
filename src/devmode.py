@@ -156,6 +156,7 @@ class DevMode:
                     self.max_visible_index = 0
                 
             if event.key == self.developer_keys[1]:
+                if not self.active_music.paused:
                     time_back = float(pg.mixer.music.get_pos()/1000) - 1 + music_start_pos/1000
                     pg.mixer.music.play(start=time_back)
                     if self.active_music.paused: pg.mixer.music.pause()
@@ -166,13 +167,14 @@ class DevMode:
                     for i in range(0, stop_index+1):
                         notes_to_play[i].reset()
 
-            if event.key == self.developer_keys[2]:                
-                time_forward = float(pg.mixer.music.get_pos()/1000) + 1 + music_start_pos/1000
-                pg.mixer.music.play(start=time_forward)
-                if self.active_music.paused: pg.mixer.music.pause()
-                
-                music_start_pos = time_forward*1000   
-                round_callback(music_start_pos, False, False)
+            if event.key == self.developer_keys[2]:        
+                if not self.active_music.paused:   
+                    time_forward = float(pg.mixer.music.get_pos()/1000) + 1 + music_start_pos/1000
+                    pg.mixer.music.play(start=time_forward)
+                    if self.active_music.paused: pg.mixer.music.pause()
+                    
+                    music_start_pos = time_forward*1000   
+                    round_callback(music_start_pos, False, False)
 
             if event.key == self.developer_keys[3]:
                 if not self.active_music.paused:
@@ -264,6 +266,8 @@ class DevMode:
     def change_note_position(self, direction, notes, max_index):
         labels = self.configs[self.music]["labels"]
         columns = self.configs[self.music]["keyfields"]
+        if len(notes) == 0: 
+            return
         # up and down
         if direction == 2:
             note = notes[self.index_selected]
@@ -329,23 +333,38 @@ class DevMode:
             
     
     def destruct_note(self, notes : list[int]):
-        self.configs[self.music]["labels"].pop(self.index_selected)
-        self.configs[self.music]["keyfields"].pop(self.index_selected)
-        notes.pop(self.index_selected)
+        if len(notes) != 0 and len(notes) > self.index_selected:
+            self.configs[self.music]["labels"].pop(self.index_selected)
+            self.configs[self.music]["keyfields"].pop(self.index_selected)
+            notes.pop(self.index_selected)
 
     def add_note(self, notes : list):
         idx = self.index_selected
-        new_note = nt.FastNote(notes[self.index_selected].field)
-        new_note.time_interval = notes[self.index_selected].time_interval + self.music_list[1].label_duration
-        notes.insert(self.index_selected + 1, new_note)
-        
-        label = new_note.time_interval/self.music_list[1].label_duration
-        self.configs[self.music]["labels"].insert(self.index_selected+1, label)
-        column = self.configs[self.music]["keyfields"][idx]
-        self.configs[self.music]["keyfields"].insert(self.index_selected+1, column)
+        if len(notes) == 0:
+            new_note = nt.FastNote(self.active_music.playgrounds[0].key_fields[0])
+            print(self.active_music.label_duration)
+            label = round(pg.mixer.music.get_pos()/self.active_music.label_duration)
+            new_note.time_interval = label*self.active_music.label_duration
+            print(new_note.time_interval)
+            notes.insert(0, new_note)
+            print(notes)
+            
+            self.configs[self.music]["labels"].insert(0, label)
+            self.configs[self.music]["keyfields"].insert(0, 0)
+        else:
+            new_note = nt.FastNote(notes[self.index_selected].field)
+            new_note.time_interval = notes[self.index_selected].time_interval + self.music_list[1].label_duration
+            notes.insert(self.index_selected + 1, new_note)
+            
+            label = new_note.time_interval/self.music_list[1].label_duration
+            self.configs[self.music]["labels"].insert(self.index_selected+1, label)
+            column = self.configs[self.music]["keyfields"][idx]
+            self.configs[self.music]["keyfields"].insert(self.index_selected+1, column)
 
     
     def change_selection(self, max_index, down, notes):
+        if len(notes) == 0: 
+            return
         if down: 
             if isinstance(notes[self.index_selected], nt.SlowNote):
                 if notes[self.index_selected].top_selected:
@@ -367,7 +386,8 @@ class DevMode:
             
     
     def draw_selection(self, screen, notes : list[nt.Note], music_start_pos, stop_index, round_callback):
-        if self.active_music.paused:
+        if self.active_music.paused and len(notes) > self.index_selected:
+            
             note = notes[self.index_selected]
             if note.rect.y >  note.field.rect.y:
                 time_back = float(pg.mixer.music.get_pos()/1000) - 0.25 + music_start_pos/1000

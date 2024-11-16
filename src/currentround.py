@@ -57,8 +57,14 @@ class CurrentRound:
         
                        
     def play_notes(self):
+        if len(self.notes_to_play) == 0: self.stop_index = self.max_index = -1
+        if self.stop_index >= len(self.notes_to_play) - 1: 
+            self.stop_index = len(self.notes_to_play) - 2
+            self.max_index = self.stop_index
+        if len(self.notes_to_play) <= self.stop_index: return
         while self.stop_index != self.max_index and pg.mixer.music.get_pos() + self.music_start_pos + (2000/480)*self.screen_size[0] >= self.notes_interval[self.stop_index + 1]:
             self.stop_index += 1
+            
             self.notes_to_play[self.stop_index].time_interval = self.notes_interval[self.stop_index]
     
     def draw_objects(self, screen : pg.Surface, keys):
@@ -66,6 +72,7 @@ class CurrentRound:
             for key_fields in playground.key_fields:
                 key_fields.draw_rect(screen)
 
+        if len(self.notes_to_play) <= self.stop_index: return
         
         for i in range(self.start_index, self.stop_index+1, 1):
             
