@@ -91,18 +91,19 @@ class SlowNote(Note):
         self.y_holding_end = 0
         
         self.top_selected = False
+        self.first_update = True
 
     def draw_rect(self, display):
         if self.updating == True:# and self.destructed == False:
             pg.draw.rect(display, self.color, self.rect)
 
     def update(self, speed, starting_pos, label_duration):
+        self.rect.height = (int((self.rect.height*self.speed)/label_duration))*label_duration/self.speed + self.rect.width
+        self.height_ratio = self.rect.height/self.rect.width
         self.speed = speed
         self.rect.centerx = self.field.rect.centerx
         self.rect.width, self.rect.height = self.calculate_size()
-        self.rect.height = (round((self.rect.height*self.speed)/label_duration))*label_duration/self.speed + self.rect.width
         self.rect.bottom = self.field.rect.bottom- (self.calculate_time_gap(starting_pos))/speed 
-        
         
         if self.field.rect.bottom + 50*self.ratio < self.rect.top:# and not self.pressed:
             self.pressed = False

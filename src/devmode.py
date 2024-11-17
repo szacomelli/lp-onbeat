@@ -69,12 +69,6 @@ class PlayerMusic(music.Music):
         note_list = self.int_to_notes(playgrounds[0].key_fields,self.columns,self.slow_notes,self.fake_notes,self.slow_heights)
         return note_list
 
-d = {
-    "oi" : 2,
-    "boi" : 3
-}
-d.update()
-d.keys().isdisjoint
 
 class DevMode:
     
@@ -136,7 +130,7 @@ class DevMode:
             self.configs[name]["speed"] = 10/int(speed)
             self.configs[name]["keyfields"] = []
             self.configs[name]["labels"] = []
-            self.configs[name]["file_delay"] = delay
+            self.configs[name]["file_delay"] = int(delay)
             self.configs[name]["BPM"] = int(bpm)
             self.configs[name]["fake_notes"] = []
             self.configs[name]["slow_notes"] = []
@@ -205,21 +199,21 @@ class DevMode:
                 
             if event.key == self.developer_keys[5]:  
                 if self.editing_note:
-                    self.change_note_position(-1, notes_to_play, max_index)
+                    self.change_note_position(-1, notes_to_play, max_index, music_start_pos)
                     
             if event.key == self.developer_keys[6]:  
                 if self.editing_note:
-                    self.change_note_position(1, notes_to_play, max_index)
+                    self.change_note_position(1, notes_to_play, max_index, music_start_pos)
                 
             if event.key == self.developer_keys[7]:  
                 if self.editing_note:
-                    self.change_note_position(2, notes_to_play, max_index)
+                    self.change_note_position(2, notes_to_play, max_index, music_start_pos)
                 else:
                     self.change_selection(max_index, False, notes_to_play)
                 
             if event.key == self.developer_keys[8]:  
                 if self.editing_note:
-                    self.change_note_position(-2, notes_to_play, max_index)
+                    self.change_note_position(-2, notes_to_play, max_index, music_start_pos)
                 else:
                     self.change_selection(max_index, True, notes_to_play)
 
@@ -242,13 +236,14 @@ class DevMode:
     
     def change_note_type(self, notes):
         current_note = notes[self.index_selected]
-        
+        speed = current_note.speed
         note_interval = current_note.time_interval
         
         if isinstance(current_note, nt.FastNote): 
+            
             notes[self.index_selected] = nt.SlowNote(current_note.field)
             self.configs[self.music]["slow_notes"].append(self.index_selected)
-            notes[self.index_selected].update
+            notes[self.index_selected].height_ratio = 1
             self.configs[self.music]["slow_durations"].append(notes[self.index_selected].height_ratio)
             
         elif isinstance(current_note, nt.SlowNote): 
@@ -261,15 +256,16 @@ class DevMode:
         elif isinstance(current_note, nt.FakeNote): 
             notes[self.index_selected] = nt.FastNote(current_note.field)
             self.configs[self.music]["fake_notes"].remove(self.index_selected)
-       
+
+        notes[self.index_selected].speed = speed
         notes[self.index_selected].time_interval = note_interval
         notes[self.index_selected].rect.y = current_note.rect.y
-        notes[self.index_selected].rect.x = current_note.rect.x
+        # notes[self.index_selected].rect.x = current_note.rect.x
         notes[self.index_selected].rect.width = current_note.rect.width
-        notes[self.index_selected].rect.height = current_note.rect.height
+        # notes[self.index_selected].rect.height = current_note.rect.height
         notes[self.index_selected].ratio = current_note.ratio
             
-    def change_note_position(self, direction, notes, max_index):
+    def change_note_position(self, direction, notes, max_index, music_starting_pos):
         labels = self.configs[self.music]["labels"]
         columns = self.configs[self.music]["keyfields"]
         if len(notes) == 0: 
@@ -280,49 +276,100 @@ class DevMode:
             
             if isinstance(notes[self.index_selected], nt.SlowNote):
                 if note.top_selected:
-                    
-                    note.rect.height += self.music_list[1].label_duration/(2*note.speed)
-                    note.height_ratio = note.rect.height/note.rect.width
+                    note.rect.height += self.music_list[1].label_duration/note.speed
+                    note.height_ratio = round(note.rect.height/note.rect.width)
+                    idx = self.configs[self.music]["slow_notes"].index(self.index_selected)
+                    self.configs[self.music]["slow_durations"][idx] = note.height_ratio
                 else:
                     if note.rect.height != note.rect.width:
                         notes[self.index_selected].time_interval += self.music_list[1].label_duration
                         labels[self.index_selected] += 1
-                        note.rect.height -= 2*self.music_list[1].label_duration/note.speed
+                        note.rect.height -= self.music_list[1].label_duration/(note.speed)
                         note.height_ratio = note.rect.height/note.rect.width
+                        for i in range(4):
+                            if labels[self.index_selected] > labels[self.index_selected + 1]:
+                                idx = self.configs[self.music]["slow_notes"].index(self.index_selected)
+                                self.configs[self.music]["slow_notes"][idx] += 1
+                                self.configs[self.music]["slow_durations"][idx] = note.height_ratio
+                                tmp = self.configs[self.music]["labels"][self.index_selected + 1]
+                                self.configs[self.music]["labels"][self.index_selected + 1] = self.configs[self.music]["labels"][self.index_selected]
+                                self.configs[self.music]["labels"][self.index_selected] = tmp
+                                tmp = self.configs[self.music]["keyfields"][self.index_selected + 1]
+                                self.configs[self.music]["keyfields"][self.index_selected + 1] = self.configs[self.music]["keyfields"][self.index_selected]
+                                self.configs[self.music]["keyfields"][self.index_selected] = tmp
+                                tmp2 = notes[self.index_selected]
+                                notes[self.index_selected] =notes[self.index_selected+1]
+                                notes[self.index_selected+1] = tmp2
+                                self.index_selected += 1
+                            
+                            
             else:
                 notes[self.index_selected].time_interval += self.music_list[1].label_duration
                 labels[self.index_selected] += 1
-                if self.index_selected != max_index and labels[self.index_selected] > labels[self.index_selected + 1]:
-                    tmp = labels[self.index_selected + 1]
-                    self.configs[self.music]["labels"][self.index_selected + 1] = self.configs[self.music]["labels"][self.index_selected]
-                    self.configs[self.music]["labels"][self.index_selected] = tmp
-                    tmp = self.configs[self.music]["keyfields"][self.index_selected + 1]
-                    self.configs[self.music]["keyfields"][self.index_selected + 1] = self.configs[self.music]["keyfields"][self.index_selected]
-                    self.configs[self.music]["keyfields"][self.index_selected] = tmp
+                for i in range(4):    
+                    if self.index_selected != max_index and labels[self.index_selected] > labels[self.index_selected + 1]:
+                        tmp = labels[self.index_selected + 1]
+                        self.configs[self.music]["labels"][self.index_selected + 1] = self.configs[self.music]["labels"][self.index_selected]
+                        self.configs[self.music]["labels"][self.index_selected] = tmp
+                        tmp = self.configs[self.music]["keyfields"][self.index_selected + 1]
+                        self.configs[self.music]["keyfields"][self.index_selected + 1] = self.configs[self.music]["keyfields"][self.index_selected]
+                        self.configs[self.music]["keyfields"][self.index_selected] = tmp
+                        tmp2 = notes[self.index_selected]
+                        notes[self.index_selected] =notes[self.index_selected+1]
+                        notes[self.index_selected+1] = tmp2
+                        self.index_selected += 1
             
         if direction == -2:
             note = notes[self.index_selected]
             if isinstance(notes[self.index_selected], nt.SlowNote):
                 if not note.top_selected:
                     
-                    note.rect.height += self.music_list[1].label_duration/(2*note.speed)
+                    note.rect.height += self.music_list[1].label_duration/(note.speed)
+                    
                     notes[self.index_selected].time_interval -= self.music_list[1].label_duration
                     labels[self.index_selected] -= 1
-                    note.height_ratio = note.rect.height/note.rect.width
+                    note.height_ratio = round(note.rect.height/note.rect.width)
+                    for i in range(4):
+                        if labels[self.index_selected] < labels[self.index_selected - 1]:
+                            idx = self.configs[self.music]["slow_notes"].index(self.index_selected)
+                            self.configs[self.music]["slow_notes"][idx] -= 1
+                            self.configs[self.music]["slow_durations"][idx] = note.height_ratio
+                            tmp = self.configs[self.music]["labels"][self.index_selected - 1]
+                            self.configs[self.music]["labels"][self.index_selected - 1] = self.configs[self.music]["labels"][self.index_selected]
+                            self.configs[self.music]["labels"][self.index_selected] = tmp
+                            tmp = self.configs[self.music]["keyfields"][self.index_selected - 1]
+                            self.configs[self.music]["keyfields"][self.index_selected - 1] = self.configs[self.music]["keyfields"][self.index_selected]
+                            self.configs[self.music]["keyfields"][self.index_selected] = tmp
+                            tmp2 = notes[self.index_selected]
+                            notes[self.index_selected] =notes[self.index_selected-1]
+                            notes[self.index_selected-1] = tmp2
+                            self.index_selected -= 1
+                            idx = self.configs[self.music]["slow_notes"].index(self.index_selected)
+                            self.configs[self.music]["slow_durations"][idx] = note.height_ratio
+                        
+
                 else:
                     if note.rect.height != note.rect.width:
-                        note.rect.height -= 2*self.music_list[1].label_duration/note.speed
+                        note.rect.height -= self.music_list[1].label_duration/note.speed
                         note.height_ratio = note.rect.height/note.rect.width
+                        idx = self.configs[self.music]["slow_notes"].index(self.index_selected)
+                        self.configs[self.music]["slow_durations"][idx] = note.height_ratio
             else:
                 notes[self.index_selected].time_interval -= self.music_list[1].label_duration
                 self.configs[self.music]["labels"][self.index_selected] -= 1
-                if labels[self.index_selected] < labels[self.index_selected - 1]:
-                    tmp = labels[self.index_selected - 1]
-                    self.configs[self.music]["labels"][self.index_selected - 1] = self.configs[self.music]["labels"][self.index_selected]
-                    self.configs[self.music]["labels"][self.index_selected] = tmp
-                    tmp = self.configs[self.music]["keyfields"][self.index_selected - 1]
-                    self.configs[self.music]["keyfields"][self.index_selected - 1] = self.configs[self.music]["keyfields"][self.index_selected]
-                    self.configs[self.music]["keyfields"][self.index_selected] = tmp
+                #while the label of selected is less than the previous?
+                for i in range(4):
+                    if labels[self.index_selected] < labels[self.index_selected - 1]:
+                        tmp = labels[self.index_selected - 1]
+                        self.configs[self.music]["labels"][self.index_selected - 1] = self.configs[self.music]["labels"][self.index_selected]
+                        self.configs[self.music]["labels"][self.index_selected] = tmp
+                        tmp = self.configs[self.music]["keyfields"][self.index_selected - 1]
+                        self.configs[self.music]["keyfields"][self.index_selected - 1] = self.configs[self.music]["keyfields"][self.index_selected]
+                        self.configs[self.music]["keyfields"][self.index_selected] = tmp
+                        tmp2 = notes[self.index_selected]
+                        notes[self.index_selected] =notes[self.index_selected-1]
+                        notes[self.index_selected-1] = tmp2
+                        self.index_selected -= 1
             
         #left and right
         if direction == 1:
@@ -336,7 +383,7 @@ class DevMode:
             notes[self.index_selected].field = playgrounds[0].key_fields[idx]
             notes[self.index_selected].color = notes[self.index_selected].field.unpressed_color
             columns[self.index_selected] = (columns[self.index_selected] - 1) % 4
-            
+        # self.up
     
     def destruct_note(self, notes : list[int]):
         if len(notes) != 0 and len(notes) > self.index_selected:
@@ -445,6 +492,9 @@ class DevMode:
         if len(self.music_list[0].labels) != 0:    
             self.configs[self.music]["labels"] = self.music_list[0].labels
             self.configs[self.music]["keyfields"] = self.music_list[0].columns
+            self.configs[self.music]["slow_notes"] = []
+            self.configs[self.music]["slow_durations"] = []
+            self.configs[self.music]["fake_notes"] = []
             self.write_configs(self.configs)
         
         if self.active_music == self.music_list[0]:             
