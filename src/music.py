@@ -192,9 +192,10 @@ class StardewMusic(Music):
                 notes.append(nt.FastNote(playgrounds[0].key_fields[i % 3]))
                 notes.append(nt.FastNote(playgrounds[0].key_fields[(i % 3) + 1]))
                 last = i
-            else:
+            elif last != i:
                 notes.append(nt.FastNote(playgrounds[0].key_fields[i % 4]))
-                last = i
+                
+            last = i
         return notes
     
 class StakesMusic(Music):
