@@ -77,7 +77,9 @@ class MainMenu(Screen):
                                     button_height,"Start", self.fonte_title)
         self.settings_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + button_height//3, button_width,\
                                     button_height,"Settings", self.fonte_title)
-        self.exit_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + (5*button_height)//3, button_width,\
+        self.help_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + (5*button_height)//3 -5, button_width,\
+                                    button_height,"Help", self.fonte_title)
+        self.exit_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + (9*button_height)//3 - 10, button_width,\
                                     button_height,"Exit", self.fonte_title)
         self.loading_message = self.fonte_title.render("OnBeat!!", True, (255, 255, 255))
     
@@ -86,6 +88,7 @@ class MainMenu(Screen):
         screen.blit(self.loading_message, (SCREEN_WIDTH // 2 - self.loading_message.get_width() // 2, SCREEN_HEIGHT // 2 - 150))
         self.start_button.draw(screen)
         self.settings_button.draw(screen)
+        self.help_button.draw(screen)
         self.exit_button.draw(screen)
         pg.display.flip()
 
@@ -95,6 +98,8 @@ class MainMenu(Screen):
         elif option == 2:
             self.manager.change_state("settings")
         elif option == 3:
+            self.manager.change_state("help")
+        elif option == 4:
             self.manager.is_running = False
     def update(self):
         pass
@@ -104,9 +109,34 @@ class MainMenu(Screen):
             self.start_game(1)
         elif self.settings_button.is_clicked(event):
             self.start_game(2)
-        elif self.exit_button.is_clicked(event):
+        elif self.help_button.is_clicked(event):
             self.start_game(3)
-        
+        elif self.exit_button.is_clicked(event):
+            self.start_game(4)
+
+class Help(Screen):
+    def __init__(self, button_width:int, button_height:int, manager):
+        super().__init__(manager)
+        self.back_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + (5*button_height)//3, button_width,\
+                                    button_height,"Back", self.fonte_title)
+        self.loading_message = self.fonte_title.render("OnBeat!!", True, (255, 255, 255))
+    def draw(self, screen):
+        screen.fill((0, 0, 0))
+        screen.blit(self.loading_message, (SCREEN_WIDTH // 2 - self.loading_message.get_width() // 2, SCREEN_HEIGHT // 2 - 150))
+        self.back_button.draw(screen)
+        pg.display.flip()
+
+    def start_game(self, option):
+        if option == 1:
+            self.manager.change_state("main_menu")
+
+    def update(self):
+        pass
+
+    def on_event(self, event:pg.event.Event,screen):
+        if self.back_button.is_clicked(event):
+            self.start_game(1)
+
 class Settings(Screen):
     def __init__(self, button_width:int, button_height:int, manager):
         super().__init__(manager)
@@ -292,16 +322,22 @@ class Game(Screen):
 class GameManager:
     def __init__(self):
         pg.init()
-        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.screen_size = {
+            "fullscreen":pg.FULLSCREEN, 
+            "resize":pg.RESIZABLE
+        }
+        self.current_screen_size = self.screen_size["resize"]
+        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), self.current_screen_size)
         pg.display.set_caption("OnBeat")
         self.music_path=["../FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", "../FullScores/Retro Scores/Ove Melaa - Italo Unlimited2.mp3","../FullScores/Retro Scores/Ove Melaa - Italo Unlimited3.mp3"]
         self.current_music= self.music_path[0]
         self.keys=[pg.K_s, pg.K_d, pg.K_k, pg.K_l]
         self.screen_map = {
-            "main_menu": MainMenu(400,60, self),
+            "main_menu": MainMenu(350,60, self),
             "game": Game(self),
             "settings": Settings(250,60, self),
-            "music_catalog": MusicCatalog(400,60, self),
+            "help": Help(350,60, self),
+            "music_catalog": MusicCatalog(350,60, self),
             "key": Key(self.keys, 250,60, self)
         }        
         self.current_screen = self.screen_map["main_menu"]
@@ -329,6 +365,15 @@ class GameManager:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     self.is_running = False
+
+                elif event.type == pg.KEYDOWN:
+                    if event.key == pg.K_F11:
+                        if self.current_screen_size == self.screen_size["resize"]:
+                            self.current_screen_size = self.screen_size["fullscreen"]
+                            self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), self.current_screen_size)
+                        else:
+                            self.current_screen_size = self.screen_size["resize"]
+                            self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), self.current_screen_size)
                 self.current_screen.on_event(event,self.screen)
             
             self.current_screen.update()
