@@ -1,0 +1,50 @@
+{
+    "English": {
+        "main_menu": {
+            "title": "OnBeat!!",
+            "buttons": ["Start", "Settings", "Help", "Exit"]
+        },
+        "help": {
+            "title": "OnBeat!!",
+            "button": ["Back"]
+        },
+        "settings": {
+            "title": "OnBeat!!",
+            "buttons": ["Keys", "Delay", "Back"]
+        },
+        "music_catalog": {
+            "title": "OnBeat!!",
+            "button_continue": "Continue",
+            "button_back": "Back"
+        },
+        "key": {
+            "title": "Key Configuration",
+            "error_key_in_use": "The key '{key}' is already in use. Choose another key.",
+            "button_back": "Back"
+        }
+    },
+    "pt/br": {
+        "main_menu": {
+            "title": "OnBeat!!",
+            "buttons": ["Iniciar", "Configurações", "Ajuda", "Sair"]
+        },
+        "help": {
+            "title": "OnBeat!!",
+            "button": ["Voltar"]
+        },
+        "settings": {
+            "title": "OnBeat!!",
+            "buttons": ["Teclas", "Deley", "Voltar"]
+        },
+        "music_catalog": {
+            "title": "OnBeat!!",
+            "button_continue": "Continuar",
+            "button_back": "Voltar"
+        },
+        "key": {
+            "title": "Configuração das Teclas",
+            "error_key_in_use": "A tecla '{key}' já está em uso. Escolha outra tecla.",
+            "button_back": "Voltar"
+        }
+    }
+}

@@ -1,15 +1,26 @@
 import pygame as pg
-from threading import Timer as tm
-import notes as nt, keyfields as kf, actualround as ar, music as ms
-from abc import ABC, abstractmethod
-import time
+import currentround as ar, music as ms
+from screens import *
+
+import json
+
+with open("src/languages.json", "r", encoding="utf-8") as file:
+    LANGUAGES = json.load(file)
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 
+def translate(key_path, language):
+    keys = key_path.split(".")
+    text = LANGUAGES[language]
+    for key in keys:
+        text = text.get(key, None)
+        if text is None:
+            return key_path
+    return text
 class Button:
-    def __init__(self, x: float, y: float, width:float, height: float, text:str, font:str, color_hover = (255,25,25), text_color = (0,0,0), texture_path: str=None):
+    def __init__(self, x: float, y: float, width:float, height: float, text:str, font:str, color_hover = (255,25,25), text_color = (255,255,255), texture_path: str=None):
         self.rect = pg.Rect(x, y, width, height)
-        self.color_normal = (255,255,255)
+        self.color_normal = (150, 80, 180)
         self.color_hover = color_hover
         self.text = text
         self.font = font
@@ -47,49 +58,48 @@ class Button:
 
         elif event.type == pg.MOUSEBUTTONDOWN:
             if self.hovered and event.button == 1:
-                #pg.mixer.Sound('./assets/sounds/menu_select.wav').play()
                 return True
             return False
-    
+
 class Screen(ABC):
     def __init__(self, manager):
         self.manager = manager
-        self.fonte_title = pg.font.Font("../assets/8bitoperator.ttf", 40)
-        self.fonte_subtitle = pg.font.Font("../assets/8bitoperator.ttf", 20)
-        self.fonte_subsubtitle = pg.font.Font("../assets/8bitoperator.ttf", 10)
+        self.fonte_title_game = pg.font.Font("./assets/8bitoperator.ttf", 45)       
+        self.fonte_title = pg.font.Font("./assets/8bitoperator.ttf", 35)
+        self.fonte_subtitle = pg.font.Font("./assets/8bitoperator.ttf", 20)
+        self.fonte_subsubtitle = pg.font.Font("./assets/8bitoperator.ttf", 10)
+        self.imagem = pg.image.load("./assets/tela/fundo.png")
+        self.imagem = pg.transform.scale(self.imagem, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
     @abstractmethod
-    def draw(self):
+    def draw(self, screen):
         pass
 
     @abstractmethod
-    def update(self):
+    def update(self, screen):
         pass
 
     @abstractmethod
-    def on_event(self):
+    def on_event(self, screen):
         pass
 
 class MainMenu(Screen):
     def __init__(self, button_width:int, button_height:int, manager):
         super().__init__(manager)
-        self.start_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 - button_height, button_width,\
-                                    button_height,"Start", self.fonte_title)
-        self.settings_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + button_height//3, button_width,\
-                                    button_height,"Settings", self.fonte_title)
-        self.help_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + (5*button_height)//3 -5, button_width,\
-                                    button_height,"Help", self.fonte_title)
-        self.exit_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + (9*button_height)//3 - 10, button_width,\
-                                    button_height,"Exit", self.fonte_title)
-        self.loading_message = self.fonte_title.render("OnBeat!!", True, (255, 255, 255))
+        self.name_buttons = translate("main_menu.buttons", self.manager.language)
+        self.menu_title = translate("main_menu.title", self.manager.language)
+        self.dict_buttons = {}
+        for i, name in enumerate(self.name_buttons):
+            x = (SCREEN_WIDTH - button_width)//2
+            y = (SCREEN_HEIGHT//9) + i * (button_height + 10) + 120
+            self.dict_buttons[name] = Button(x, y, button_width, button_height, name, self.fonte_title)
+        self.loading_message = self.fonte_title_game.render(self.menu_title, True, (255, 255, 255))
     
     def draw(self, screen):
-        screen.fill((0, 0, 0))
-        screen.blit(self.loading_message, (SCREEN_WIDTH // 2 - self.loading_message.get_width() // 2, SCREEN_HEIGHT // 2 - 150))
-        self.start_button.draw(screen)
-        self.settings_button.draw(screen)
-        self.help_button.draw(screen)
-        self.exit_button.draw(screen)
+        screen.blit(self.imagem, (0, 0))
+        screen.blit(self.loading_message, (SCREEN_WIDTH//2 - self.loading_message.get_width()//2, SCREEN_HEIGHT//2 - 150))
+        for i in range(len(self.name_buttons)):
+            self.dict_buttons[self.name_buttons[i]].draw(screen)
         pg.display.flip()
 
     def start_game(self, option):
@@ -101,27 +111,25 @@ class MainMenu(Screen):
             self.manager.change_state("help")
         elif option == 4:
             self.manager.is_running = False
-    def update(self):
+
+    def update(self, screen):
         pass
 
     def on_event(self, event, screen):
-        if self.start_button.is_clicked(event):
-            self.start_game(1)
-        elif self.settings_button.is_clicked(event):
-            self.start_game(2)
-        elif self.help_button.is_clicked(event):
-            self.start_game(3)
-        elif self.exit_button.is_clicked(event):
-            self.start_game(4)
+        for i in range(len(self.name_buttons)+1):
+            if self.dict_buttons[self.name_buttons[i-1]].is_clicked(event):
+                self.start_game(i)
 
 class Help(Screen):
     def __init__(self, button_width:int, button_height:int, manager):
         super().__init__(manager)
+        self.name_button = translate("help.button", self.manager.language)
         self.back_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + (5*button_height)//3, button_width,\
-                                    button_height,"Back", self.fonte_title)
+                                    button_height, self.name_button[0], self.fonte_title)
         self.loading_message = self.fonte_title.render("OnBeat!!", True, (255, 255, 255))
+
     def draw(self, screen):
-        screen.fill((0, 0, 0))
+        screen.blit(self.imagem, (0, 0))
         screen.blit(self.loading_message, (SCREEN_WIDTH // 2 - self.loading_message.get_width() // 2, SCREEN_HEIGHT // 2 - 150))
         self.back_button.draw(screen)
         pg.display.flip()
@@ -130,7 +138,7 @@ class Help(Screen):
         if option == 1:
             self.manager.change_state("main_menu")
 
-    def update(self):
+    def update(self, screen):
         pass
 
     def on_event(self, event:pg.event.Event,screen):
@@ -140,20 +148,19 @@ class Help(Screen):
 class Settings(Screen):
     def __init__(self, button_width:int, button_height:int, manager):
         super().__init__(manager)
-        self.keys = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 - button_height, button_width,\
-                                    button_height,"Keys", self.fonte_title)
-        self.deley = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + button_height//3, button_width,\
-                                    button_height,"Delay", self.fonte_title)
-        self.back_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + (5*button_height)//3, button_width,\
-                                    button_height,"Back", self.fonte_title)
-        self.loading_message = self.fonte_title.render("OnBeat!!", True, (255, 255, 255))
+        self.name_buttons = translate("settings.buttons", self.manager.language)
+        self.dict_buttons = {}
+        for i, name in enumerate(self.name_buttons):
+            x = (SCREEN_WIDTH - button_width)//2
+            y = (SCREEN_HEIGHT//9) + (i) * (button_height + 10) + 120
+            self.dict_buttons[name] = Button(x, y, button_width, button_height, name, self.fonte_title)
+        self.loading_message = self.fonte_title_game.render(translate("settings.title", self.manager.language), True, (255, 255, 255))
 
     def draw(self, screen):
-        screen.fill((0, 0, 0))
-        screen.blit(self.loading_message, (SCREEN_WIDTH // 2 - self.loading_message.get_width() // 2, SCREEN_HEIGHT // 2 - 150))
-        self.keys.draw(screen)
-        self.deley.draw(screen)
-        self.back_button.draw(screen)
+        screen.blit(self.imagem, (0, 0))
+        screen.blit(self.loading_message, (SCREEN_WIDTH//2 - self.loading_message.get_width()//2, SCREEN_HEIGHT//2 - 150))
+        for i in range(len(self.name_buttons)):
+            self.dict_buttons[self.name_buttons[i]].draw(screen)
         pg.display.flip()
 
     def start_game(self, option):
@@ -162,23 +169,20 @@ class Settings(Screen):
         if option == 3:
             self.manager.change_state("main_menu")
 
-    def update(self):
+    def update(self, screen):
         pass
 
     def on_event(self, event, screen):
-        if self.keys.is_clicked(event):
-            self.start_game(1)
-        elif self.deley.is_clicked(event):
-            self.start_game(2)
-        elif self.back_button.is_clicked(event):
-            self.start_game(3)
+        for i in range(len(self.name_buttons)+1):
+            if self.dict_buttons[self.name_buttons[i-1]].is_clicked(event):
+                self.start_game(i)
 
 class MusicCatalog(Screen):
     def __init__(self, button_width:int, button_height:int, manager):
         super().__init__(manager)
         self.dict_buttons= {}
-        for music in self.manager.music_path:
-            music_name=(music.split(" - ")[1]).split(".")[0]
+        for music in self.manager.music_names:
+            music_name= music
             self.dict_buttons[music] = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 - button_height, button_width,\
                                     button_height,music_name, self.fonte_subtitle)
         self.continue_button = Button(SCREEN_WIDTH//2 - button_width//2, SCREEN_HEIGHT//2 + button_height//2, button_width,\
@@ -187,10 +191,11 @@ class MusicCatalog(Screen):
                                     button_height,"Back", self.fonte_title)
         self.loading_message = self.fonte_title.render("OnBeat!!", True, (255, 255, 255))
         self.index=0
+
     def draw(self, screen):
-        screen.fill((0, 0, 0))
+        screen.blit(self.imagem, (0, 0))
         screen.blit(self.loading_message, (SCREEN_WIDTH // 2 - self.loading_message.get_width() // 2, SCREEN_HEIGHT // 2 - 150))
-        self.dict_buttons[self.manager.music_path[self.index]].draw(screen)
+        self.dict_buttons[self.manager.music_names[self.index]].draw(screen)
         self.continue_button.draw(screen)
         self.back_button.draw(screen)
         pg.display.flip()
@@ -201,7 +206,7 @@ class MusicCatalog(Screen):
         if option == 1:
             self.manager.change_state("main_menu")
 
-    def update(self):
+    def update(self, screen):
         pass
 
     def on_event(self, event:pg.event.Event,screen):
@@ -233,7 +238,7 @@ class Key(Screen):
         self.previous_keys = keys.copy()
         self.buttons = []
         self.error_message = None
-        filepath = "../assets/notes/keyfield/"
+        filepath = "./assets/notes/keyfield/"
         self.hover_color = (0, 0, 255, 50)
         self.text_color = (255,255,255)
         self.is_valid = False
@@ -249,7 +254,7 @@ class Key(Screen):
                                     button_height,"Back", self.fonte_title)
         
     def start_game(self):
-        self.manager.change_state("main_menu")
+        self.manager.change_state("settings")
 
     def draw_error_message(self, screen):
         if self.error_message:  
@@ -257,7 +262,7 @@ class Key(Screen):
             screen.blit(error_text, (SCREEN_WIDTH // 2 - error_text.get_width() // 2, SCREEN_HEIGHT - 50))
 
     def draw(self,screen):
-        screen.fill((0, 0, 0))
+        screen.blit(self.imagem, (0, 0))
         title_text = self.fonte_subtitle.render("Configuração das teclas:", True, (225, 225, 225))
         screen.blit(title_text, (SCREEN_WIDTH // 2 - title_text.get_width() // 2, 50))
 
@@ -270,7 +275,7 @@ class Key(Screen):
         self.back_button.draw(screen)
         self.draw_error_message(screen)
             
-    def update(self):
+    def update(self, screen):
         pass
 
     def on_event(self, event, screen):
@@ -302,26 +307,30 @@ class Game(Screen):
         pg.mixer.init()
         super().__init__(manager)
         print(pg.mixer.get_init())
+        self.resize = False
 
     def draw(self, screen):
-        screen.fill((0, 0, 0))
-        self.manager.round.draw_objects(self.keys, screen)
+        screen.blit(self.imagem, (0, 0))
+        self.manager.round.draw_objects(screen, self.keys)
         pg.display.flip()
 
-    def update(self):
+    def update(self, screen):
         #if pg.mixer.music.get_pos() > 12000: pg.mixer.music.pause()
         self.manager.round.play_notes()
         self.keys = pg.key.get_pressed()
         self.undone = False
-        self.manager.round.update(self.keys)
+        self.manager.round.update(self.keys, screen, self.resize)
 
     def on_event(self,event, screen):
-        if event.type == pg.KEYUP:
-           self.manager.round.SlowKey_held_reset(event.key)
+        self.manager.round.on_event(event)
+        if event.type == pg.VIDEORESIZE:
+            self.resize = True
 
 class GameManager:
     def __init__(self):
         pg.init()
+        self.languages = ["English", "pt/br"]
+        self.language = self.languages[1]
         self.screen_size = {
             "fullscreen":pg.FULLSCREEN, 
             "resize":pg.RESIZABLE
@@ -329,9 +338,11 @@ class GameManager:
         self.current_screen_size = self.screen_size["resize"]
         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), self.current_screen_size)
         pg.display.set_caption("OnBeat")
-        self.music_path=["../FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", "../FullScores/Retro Scores/Ove Melaa - Italo Unlimited2.mp3","../FullScores/Retro Scores/Ove Melaa - Italo Unlimited3.mp3"]
-        self.current_music= self.music_path[0]
         self.keys=[pg.K_s, pg.K_d, pg.K_k, pg.K_l]
+        self.music_names = ["Italo Unlimited", "Tropicalia-short", "High Stakes,Low Chances"]
+        self.music_path=[ms.ItaloMusic("./FullScores/Retro Scores/Ove Melaa - Italo Unlimited.mp3", keys =[self.keys]), ms.StardewMusic("./Tropicalia - short.mp3", keys= [self.keys]), \
+                         ms.StakesMusic("./FullScores/Retro Scores/Ove Melaa - High Stakes,Low Chances.mp3",keys = [self.keys])]
+        self.current_music= self.music_path[0]
         self.screen_map = {
             "main_menu": MainMenu(350,60, self),
             "game": Game(self),
@@ -346,13 +357,8 @@ class GameManager:
 
     def round_start(self):
         self.a = [0, 2, 7, 13]
-        self.key_fields = [kf.KeyField(100, 400, (255, 0, 0), (220, 0, 0), self.keys[0]),
-              kf.KeyField(200, 400, (0, 255, 0), (0, 220, 0), self.keys[1]), 
-              kf.KeyField(300, 400, (0, 0, 255), (0, 0, 220), self.keys[2]), 
-              kf.KeyField(400, 400, (255, 255, 0), (220, 220, 0), self.keys[3])]
-        print(self.current_music)
-        self.musica = ms.ItaloMusic(self.current_music, self.key_fields)
-        self.round = ar.ActualRound(self.key_fields, self.musica)
+        self.musica = self.current_music
+        self.round = ar.CurrentRound(self.musica)
         self.round.start_round()
 
     def change_state(self, screen_name):
@@ -376,7 +382,7 @@ class GameManager:
                             self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), self.current_screen_size)
                 self.current_screen.on_event(event,self.screen)
             
-            self.current_screen.update()
+            self.current_screen.update(self.screen)
             self.current_screen.draw(self.screen)
             pg.display.flip() 
             self.clock.tick(60)
