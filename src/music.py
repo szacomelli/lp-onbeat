@@ -4,17 +4,25 @@ import notes as nt
 import keyfields as kf
 import playground as pgr
 
+# these classes keep the information to build the original songs of the game
 class Music:
     def __init__(self, file, speed=0, bpm=120, multiplayer=[False,1]):
         self.bpm = bpm
+        # label duration: the minium time duration of a note (and minimum interval of time between notes)
+        # (in miliseconds)
         self.label_duration = 60000/(4*self.bpm)
+        # path of the .mp3 or .ogg
         self.file_path = file
+        # interval of a note = the moment the note plays in the song (in miliseconds)
         self.time_intervals = self.create_intervals()
+        # a list with all the notes (objects) that will be played
         self.notes_list = []
         self.total_notes = len(self.notes_list)
+        # how fast the notes will fall
         self.speed = speed
         self.playgrounds = []
         self.multiplayer_info = multiplayer
+        # a sound version of the song (needed in some cases)
         self.song = pg.mixer.Sound(file)
         self.channel = pg.mixer.Channel(1)
         self.has_panning = False
@@ -36,14 +44,16 @@ class Music:
         pg.mixer.music.set_volume(volume)
         pg.mixer.music.load(self.file_path)
         pg.mixer.music.play(start=0)
-        #pg.mixer.music.set_volume(0)
         
         if self.has_panning: self.channel.play(self.song)
         
-
+    # the delay is how many miliseconds had elapsed before the song started playing
     def get_music_delay(self):
         return (pg.time.get_ticks() - pg.mixer.music.get_pos())
     
+    # turns a list of integers into a list of notes, where each integer tells in which key_field the note will fall
+    # slow_notes_indexes tells the index of each note that needs to be turned into a slow note. slow_notes_height tells it's size
+    # fake_notes_indexes is similar to slow_notes_indexes
     def int_to_notes(self, key_fields : list[kf.KeyField], list : list[int], slow_notes_indexes=[], fake_notes_indexes=[], slow_notes_height=[]):
         notes_list = []
         for i in list:

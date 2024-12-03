@@ -7,12 +7,14 @@ import devmode
 
 class CurrentRound:
     def __init__(self,  music : music.Music, screen_size=[480,640], switch_key=pg.K_SPACE, dev=False, music_name="Musica2", editing_music=False):
+        # basic atributtes
         self.screen_size = screen_size
         self.active_playground = 0
         self.music_start_pos = 0
         self.dev = devmode.DevMode(music_name, active=dev, editing_music=editing_music)
         
-        
+        # change the music to dev-selected one. maybe is better to modularize the dev class to call round, not the other way around
+        # also defines some basic attributes for the music and notes
         if dev: self.music = self.dev.active_music
         else: self.music = music
         self.speed = self.music.speed
@@ -22,6 +24,7 @@ class CurrentRound:
         self.stop_index = -1
         self.max_index = len(self.notes_to_play) - 1
         
+        # score attributes
         self.total_points = 0
         self.combo = 0
         self.combo_mult_scores = [0, self.music.total_notes*0.05, self.music.total_notes*0.1, self.music.total_notes*0.3]
@@ -39,23 +42,26 @@ class CurrentRound:
         
         self.created_intervals = []
 
+    # starts the music
     def start_round(self):
         self.music.play_music()
 
+    # keep track of pressed keys; it's used just for the Stakes level or for dev
     def on_event(self, event):
         if self.dev.active:
             self.dev.dev_shorts(event, self.notes_to_play, self.max_index, self.stop_index, self.round_callback, self.music_start_pos, self.change_music)        
         if event.type == pg.KEYDOWN:
             if event.key == self.switch_key:
                 self.active_playground = (self.active_playground + 1) % len(self.music.playgrounds)
-                
+              
+    # a call_back used in dev  
     def round_callback(self, music_start_pos, restart_index, decrease_stop_index):
         if restart_index: self.start_index = 0
         self.music_start_pos = music_start_pos
 
         if decrease_stop_index: self.stop_index -= 1
         
-                       
+    # selects notes that need to be placed in screen               
     def play_notes(self):
         if len(self.notes_to_play) == 0: self.stop_index = self.max_index = -1
         if self.stop_index >= len(self.notes_to_play) - 1: 
@@ -67,6 +73,7 @@ class CurrentRound:
             
             self.notes_to_play[self.stop_index].time_interval = self.notes_interval[self.stop_index]
     
+    # draw all needed objects
     def draw_objects(self, screen : pg.Surface, keys):
         for playground in self.music.playgrounds:
             for key_fields in playground.key_fields:
@@ -85,6 +92,7 @@ class CurrentRound:
         screen.blit(self.combo_txt, (self.text_x, self.text_y[0]))
         screen.blit(self.score_txt, (self.text_x, self.text_y[1]))
 
+    # keep track of key_fields pressed
     def on_key_press(self, keys, notes_list):        
         for key_field in self.music.playgrounds[self.active_playground].key_fields:
             if keys[key_field.key] and not key_field.pressed:
@@ -108,6 +116,7 @@ class CurrentRound:
                     key_field.pressed = True
                     self.combo = 0
      
+    # used by dev to change the music, between the recording and playable versions of it
     def change_music(self):
         if self.dev.active:
             self.music_start_pos = 0
@@ -128,12 +137,14 @@ class CurrentRound:
             
             self.start_round()
     
+    # just calculates the multiplier the player is getting by each hit note
     def calculate_combo_multiplier(self, combo):
         if combo >= self.combo_mult_scores[0] and combo < self.combo_mult_scores[1]: return 1
         elif combo >= self.combo_mult_scores[1] and combo < self.combo_mult_scores[2]: return 2
         elif combo >= self.combo_mult_scores[2] and combo < self.combo_mult_scores[3]: return 3
         elif combo >= self.combo_mult_scores[3]: return 4
 
+    # updates all needed objects
     def update(self, keys, screen, resize):
         speed = self.speed
         size = self.screen_size
@@ -179,12 +190,14 @@ class CurrentRound:
         self.score_txt = self.create_text("Score: ",self.total_points)
         return False
 
+    # update the ratio (the ratio is between the current and original screen size)
     def update_ratio(self,width_ratio,height_ratio):
         note_ratio = max(width_ratio,height_ratio)
         for note in self.notes_to_play:
             note.ratio = note_ratio
         self.text_ratio = [width_ratio,height_ratio]
 
+    # create a text, used for score and combo
     def create_text(self, text, number):
         font = pg.font.SysFont('Comic Sans MS', self.text_font)
         return font.render(text+str(number), False, (220, 0, 0))

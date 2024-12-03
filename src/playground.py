@@ -1,6 +1,7 @@
 import pygame as pg
 import notes as nt, keyfields as kf
 
+# playground takes the "box" that contains the key_fields and notes and resizes it as the screen resizes too
 class Playground:
     def __init__(self, bottom_padding, screen_width, screen_height, black_bars=50, keys=[pg.K_s, pg.K_d, pg.K_k, pg.K_l], blank_space_percentage=0.1, pg_numbers=[1,1]):
         usable_width = screen_width-2*black_bars
