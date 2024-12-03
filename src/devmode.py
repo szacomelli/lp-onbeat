@@ -3,6 +3,7 @@ import music
 import json
 import playground as pgr
 import notes as nt
+import currentround as cr
 
 pg_numbers = [1,1]
 
@@ -102,6 +103,8 @@ class DevMode:
         self.editing_note = False
         self.max_visible_index = 0
         self.min_visible_index = 0
+        
+        self.round = cr.CurrentRound(self.active_music, dev=True)
     
     def edit_music(self, name):
         self.configs[name]["music_file"] = input("new music file path: ")
@@ -139,7 +142,7 @@ class DevMode:
             self.write_configs(self.configs)
     
         
-    def dev_shorts(self, event, notes_to_play, max_index, stop_index, round_callback, music_start_pos, change_music):
+    def dev_shorts(self, event, notes_to_play, max_index, stop_index, round_callback, music_start_pos):
         
         if event.type == pg.KEYDOWN:
             if event.key == self.developer_keys[0]:
@@ -194,7 +197,7 @@ class DevMode:
             
             if event.key == self.developer_keys[4]:  
                 self.recording_mode() 
-                change_music()
+                #change_music()
                 
             if event.key == self.developer_keys[5]:  
                 if self.editing_note:
@@ -390,8 +393,7 @@ class DevMode:
             
             self.index_selected = min((self.index_selected + 1), max_index)
             if isinstance(notes[self.index_selected], nt.SlowNote): notes[self.index_selected].top_selected = False
-            
-    
+             
     def draw_selection(self, screen, notes : list[nt.Note], music_start_pos, stop_index, round_callback):
         if self.active_music.paused and len(notes) > self.index_selected:
             note = notes[self.index_selected]
@@ -409,6 +411,7 @@ class DevMode:
                 pg.mixer.music.play(start=time_back)
                 if self.active_music.paused: 
                     pg.mixer.music.pause()
+                    
                 music_start_pos = time_back*1000
                 round_callback(max(0,music_start_pos), True, False)
                 for i in range(0, stop_index+1):
@@ -418,6 +421,7 @@ class DevMode:
                 pg.mixer.music.play(start=time_forward)
                 if self.active_music.paused: 
                     pg.mixer.music.pause()
+                    
                 music_start_pos = time_forward*1000   
                 round_callback(music_start_pos, False, False)
                 
@@ -463,12 +467,19 @@ class DevMode:
                         self.music_info["slow_notes"], self.music_info["slow_durations"],
                         self.music_info["file_delay"])
             self.music_list[0] = VoidMusic(self.music_info["music_file"], self.music_info["speed"], self.BPM)
-            pg.time.wait(500)
+                        
         self.active_music = self.music_list[self.active_music_idx]
+        speed, txt_x, txt_y, font, txt_ratio = self.round.speed, self.round.text_x, self.round.text_y, self.round.text_font, self.round.text_ratio
+        self.round = cr.CurrentRound(self.active_music, dev=True)
+        self.round.speed, self.round.text_x, self.round.text_y, self.round.text_font, self.round.text_ratio = speed, txt_x, txt_y, font, txt_ratio
+        self.round.start_round()
         return
         
-    def draw(self, screen : pg.Surface, music_start_pos, font_size):
+    def on_event(self, event):
+        self.dev_shorts(event, self.round.notes_to_play, self.round.max_index, self.round.stop_index, self.round.round_callback, self.round.music_start_pos)        
+        self.round.on_event(event)
         
+    def draw(self, screen : pg.Surface, music_start_pos, font_size):
         krect = self.active_music.playgrounds[0].key_fields[0].rect
         a = (60000/(4*self.BPM))
         actual_label = round((pg.mixer.music.get_pos()+music_start_pos - self.music_list[1].file_delay)/a)
