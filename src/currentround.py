@@ -11,13 +11,16 @@ class CurrentRound:
         self.active_playground = 0
         self.music_start_pos = 0
         self.dev = devmode.DevMode(music_name, active=dev, editing_music=editing_music)
-        
+
         
         if dev: self.music = self.dev.active_music
         else: self.music = music
         self.speed = self.music.speed
         self.notes_to_play = self.music.notes_list
         self.notes_interval = self.music.time_intervals
+
+        # tets
+        
         self.start_index = 0
         self.stop_index = -1
         self.max_index = len(self.notes_to_play) - 1
@@ -36,7 +39,17 @@ class CurrentRound:
         self.text_ratio = [1,1]
         self.switch_key = switch_key
         
-        
+        self.font = pg.font.Font("./assets/8bitoperator.ttf", self.text_font)
+        self.msg = ["Miss", "Bad","Great!", "Perfect!",""]
+        self.i = 4
+        self.messages = [self.font.render(self.msg[0], True, (255, 255, 255)),
+                         self.font.render(self.msg[1], True, (255, 255, 255)),
+                         self.font.render(self.msg[2], True, (255, 255, 255)),
+                         self.font.render(self.msg[3], True, (255, 255, 255)),
+                         self.font.render(self.msg[4], True, (255, 255, 255))]
+        self.x_pos = 0
+        self.y_pos = 0
+                      
         self.created_intervals = []
 
     def start_round(self):
@@ -67,16 +80,18 @@ class CurrentRound:
             
             self.notes_to_play[self.stop_index].time_interval = self.notes_interval[self.stop_index]
     
-    def draw_objects(self, screen : pg.Surface, keys):
+    def draw_objects(self, screen : pg.Surface, keys):        
+        
         for playground in self.music.playgrounds:
+            playground.draw(screen)
             for key_fields in playground.key_fields:
-                key_fields.draw_rect(screen)
+                key_fields.draw(screen)
 
         if len(self.notes_to_play) <= self.stop_index: return
         
         for i in range(self.start_index, self.stop_index+1, 1):
             
-            self.notes_to_play[i].draw_rect(screen)
+            self.notes_to_play[i].draw(screen)
             
         if self.dev.active: self.dev.draw_selection(screen, self.notes_to_play, self.music_start_pos, self.stop_index, self.round_callback)
         
@@ -84,6 +99,8 @@ class CurrentRound:
         if self.dev.active: self.dev.draw(screen, self.music_start_pos, self.text_font)
         screen.blit(self.combo_txt, (self.text_x, self.text_y[0]))
         screen.blit(self.score_txt, (self.text_x, self.text_y[1]))
+        screen.blit(self.messages[self.i], (self.x_pos, self.y_pos))
+        
 
     def on_key_press(self, keys, notes_list):        
         for key_field in self.music.playgrounds[self.active_playground].key_fields:
@@ -95,13 +112,34 @@ class CurrentRound:
 
                     if actual_note.note_ended():
                         key_field.pressed = True
+                        # VERIFY
                         notes_list[note_idx].updating = False
+                        
                         
                         if key_field.detect_FakeNote(actual_note): 
                             self.combo = 0
 
                     self.combo = key_field.detect_SlowNote(actual_note, self.combo)
-                    self.total_points += actual_note.calculate_points()*self.calculate_combo_multiplier(self.combo)
+                    # VERIFY
+                        
+                        
+                    n = actual_note.calculate_points()
+                    print(n)
+                    if n == 0:
+                        self.i = 4
+                    elif n == 1:
+                        self.i = 1
+                    elif n == 3:
+                        self.i = 2
+                    elif n == 5:
+                        self.i = 3
+                    else:
+                        self.i = 4
+                        pass
+                    self.x_pos = (self.screen_size[1] - self.messages[self.i].get_width()) // 2
+                    self.y_pos = (self.screen_size[0] - self.messages[self.i].get_height()) // 2
+                    
+                    self.total_points += n*self.calculate_combo_multiplier(self.combo)
                     
                 else:
                     if self.dev.active: self.dev.create_music(self.music_start_pos, self.music.playgrounds[self.active_playground].key_fields.index(key_field))
@@ -137,6 +175,7 @@ class CurrentRound:
     def update(self, keys, screen, resize):
         speed = self.speed
         size = self.screen_size
+        
         if resize:
             for playground in self.music.playgrounds:
                     (self.screen_size, self.speed) = playground.update(screen, self.update_ratio, speed, size)
@@ -170,6 +209,7 @@ class CurrentRound:
                     self.start_index += 1
                     note.reset()        
 
+        # test
         if self.music.has_panning:
             self.music.update()
 

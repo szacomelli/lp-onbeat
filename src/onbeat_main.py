@@ -67,12 +67,15 @@ class Screen(ABC):
         self.fonte_title = pg.font.Font("./assets/8bitoperator.ttf", 35)
         self.fonte_subtitle = pg.font.Font("./assets/8bitoperator.ttf", 20)
         self.fonte_subsubtitle = pg.font.Font("./assets/8bitoperator.ttf", 10)
-        self.imagem_original = pg.image.load("./assets/tela/fundo.png")
+        self.imagem_original = pg.image.load("./assets/game_screen/fundo.png")
         self.imagem = pg.transform.scale(self.imagem_original, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
-    def resize(self, screen):
+    def resize_background(self, screen):
         width, height = screen.get_size()
         self.imagem = pg.transform.scale(self.imagem_original, (width, height))
+
+    def draw_background(self, screen):
+        screen.blit(self.imagem, (0, 0))
 
     @abstractmethod
     def draw(self, screen):
@@ -96,9 +99,9 @@ class MainMenu(Screen):
             y = (SCREEN_HEIGHT//9) + i * (button_height + 10) + 120
             self.dict_buttons[name] = Button(x, y, button_width, button_height, name, self.fonte_title)
         self.loading_message = self.fonte_title_game.render("OnBeat!!", True, (255, 255, 255))
-    
+
     def draw(self, screen):
-        self.resize(screen)
+        self.resize_background(screen)
         screen.blit(self.imagem, (0, 0))
         screen.blit(self.loading_message, (SCREEN_WIDTH//2 - self.loading_message.get_width()//2, SCREEN_HEIGHT//2 - 150))
         for i in range(len(self.name_buttons)):
@@ -132,7 +135,7 @@ class Help(Screen):
         self.loading_message = self.fonte_title.render("OnBeat!!", True, (255, 255, 255))
 
     def draw(self, screen):
-        self.resize(screen)
+        self.resize_background(screen)
         screen.blit(self.imagem, (0, 0))
         screen.blit(self.loading_message, (SCREEN_WIDTH // 2 - self.loading_message.get_width() // 2, SCREEN_HEIGHT // 2 - 150))
         self.back_button.draw(screen)
@@ -161,7 +164,7 @@ class Settings(Screen):
         self.loading_message = self.fonte_title_game.render("OnBeat!!", True, (255, 255, 255))
 
     def draw(self, screen):
-        self.resize(screen)
+        self.resize_background(screen)
         screen.blit(self.imagem, (0, 0))
         screen.blit(self.loading_message, (SCREEN_WIDTH//2 - self.loading_message.get_width()//2, SCREEN_HEIGHT//2 - 150))
         for i in range(len(self.name_buttons)):
@@ -198,8 +201,7 @@ class MusicCatalog(Screen):
         self.index=0
 
     def draw(self, screen):
-        self.resize(screen)
-        screen.blit(self.imagem, (0, 0))
+        self.resize_background(screen)
         screen.blit(self.loading_message, (SCREEN_WIDTH // 2 - self.loading_message.get_width() // 2, SCREEN_HEIGHT // 2 - 150))
         self.dict_buttons[self.manager.music_names[self.index]].draw(screen)
         self.continue_button.draw(screen)
@@ -251,7 +253,7 @@ class Key(Screen):
         self.waiting_for_input = None
         
         for i, key in enumerate(keys):
-            texture_path = filepath + f"botao_{i}.png"
+            texture_path = filepath + f"button_{i}.png"
             pos = ((SCREEN_WIDTH // 9) + 2 * i * SCREEN_WIDTH // 9, SCREEN_HEIGHT // 2)
             button = Button(pos[0], pos[1], SCREEN_WIDTH // 9, SCREEN_WIDTH // 9, pg.key.name(key), self.fonte_subtitle,self.hover_color, self.text_color, texture_path)
             self.buttons.append(button)
@@ -268,7 +270,7 @@ class Key(Screen):
             screen.blit(error_text, (SCREEN_WIDTH // 2 - error_text.get_width() // 2, SCREEN_HEIGHT - 50))
 
     def draw(self,screen):
-        self.resize(screen)
+        self.resize_background(screen)
         screen.blit(self.imagem, (0, 0))
         title_text = self.fonte_subtitle.render("Configuração das teclas:", True, (225, 225, 225))
         screen.blit(title_text, (SCREEN_WIDTH // 2 - title_text.get_width() // 2, 50))
@@ -313,11 +315,20 @@ class Game(Screen):
         pg.mixer.pre_init(44100, channels=2, buffer=512)
         pg.mixer.init()
         super().__init__(manager)
+        self.needs_resize = True
         print(pg.mixer.get_init())
-        self.resize = False
+        # self.resize = False
+
+    def resize_background(self, screen):
+        width, height = screen.get_size()
+        self.imagem = pg.transform.scale(self.imagem_original, (width, height))
 
     def draw(self, screen):
+        screen.fill((0,0,0))
+
+        self.resize_background(screen) 
         screen.blit(self.imagem, (0, 0))
+
         self.manager.round.draw_objects(screen, self.keys)
         pg.display.flip()
 
@@ -326,7 +337,8 @@ class Game(Screen):
         self.manager.round.play_notes()
         self.keys = pg.key.get_pressed()
         self.undone = False
-        self.manager.round.update(self.keys, screen, self.resize)
+        self.manager.round.update(self.keys, screen, self.needs_resize)
+        # self.resize = False
 
     def on_event(self,event, screen):
         self.manager.round.on_event(event)
@@ -346,7 +358,9 @@ class GameManager:
             "resize":pg.RESIZABLE
         }
         self.current_screen_size = self.screen_size["resize"]
-        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), self.current_screen_size)
+        
+        flags = pg.OPENGL | pg.FULLSCREEN
+        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), self.current_screen_size,   vsync=1)
         pg.display.set_caption("OnBeat")
         self.keys=[pg.K_s, pg.K_d, pg.K_k, pg.K_l]
         self.music_names = ["Italo Unlimited", "Tropicalia-short", "High Stakes,Low Chances"]
@@ -373,6 +387,7 @@ class GameManager:
 
     def change_state(self, screen_name):
         self.current_screen = self.screen_map[screen_name]
+        self.current_screen.resize_background(self.screen)
 
     def run(self):
         self.is_running = True
@@ -381,7 +396,10 @@ class GameManager:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     self.is_running = False
-
+                elif event.type == pg.VIDEORESIZE:
+                    self.screen = pg.display.set_mode(event.size, self.current_screen_size)
+                    self.current_screen.resize_background(self.screen)
+                    self.current_screen.on_event(event, self.screen)
                 elif event.type == pg.KEYDOWN:
                     if event.key == pg.K_F11:
                         if self.current_screen_size == self.screen_size["resize"]:
@@ -391,7 +409,7 @@ class GameManager:
                             self.current_screen_size = self.screen_size["resize"]
                             self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), self.current_screen_size)
                 self.current_screen.on_event(event,self.screen)
-            
+
             self.current_screen.update(self.screen)
             self.current_screen.draw(self.screen)
             pg.display.flip() 
