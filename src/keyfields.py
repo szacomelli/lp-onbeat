@@ -1,4 +1,6 @@
 import pygame as pg
+from pathlib import Path
+import os
 import notes
 
 class KeyField:
@@ -37,3 +39,27 @@ class KeyField:
     def update(self, keys):
         if not keys[self.key]:
             self.pressed = False
+
+class MakeSprite:
+    def __init__(self, rect, sprite_path):
+        if not pg.display.get_init():
+            raise RuntimeError("O display do Pygame precisa ser inicializado antes de carregar imagens.")
+        self.sprite = pg.image.load(sprite_path).convert_alpha()
+        self.rect = rect
+
+    @classmethod
+    def load_sprites(cls, filepath: str) -> list:
+        sprite_paths = []
+        for sprite_file in Path(filepath).iterdir():
+            if sprite_file.is_file():
+                sprite_paths.append(str(sprite_file))  # Adiciona o caminho do arquivo
+        return sorted(sprite_paths)
+    @classmethod
+    def identify_sprite(cls, sprite_path: str) -> str:
+        nothing_extention = os.path.splitext(sprite_path)[0]
+        return nothing_extention[-1]
+    
+    def draw(self, display):
+
+        scaled_sprite = pg.transform.scale(self.sprite, self.rect.size)
+        display.blit(scaled_sprite, self.rect.topleft)

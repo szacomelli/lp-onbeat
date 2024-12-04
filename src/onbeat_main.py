@@ -1,11 +1,11 @@
 import pygame as pg
 import currentround as ar, music as ms
-from screens import *
-
+from abc import ABC, abstractmethod
 import json
 
 with open("src/languages.json", "r", encoding="utf-8") as file:
     LANGUAGES = json.load(file)
+    
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 
@@ -55,11 +55,10 @@ class Button:
     def is_clicked(self, event):
         if event.type == pg.MOUSEMOTION:
             self.__check_hover(event.pos)
-
-        elif event.type == pg.MOUSEBUTTONDOWN:
-            if self.hovered and event.button == 1:
-                return True
             return False
+        elif event.type == pg.MOUSEBUTTONDOWN and self.hovered and event.button == 1:
+            return True
+        return False
 
 class Screen(ABC):
     def __init__(self, manager):
@@ -68,8 +67,12 @@ class Screen(ABC):
         self.fonte_title = pg.font.Font("./assets/8bitoperator.ttf", 35)
         self.fonte_subtitle = pg.font.Font("./assets/8bitoperator.ttf", 20)
         self.fonte_subsubtitle = pg.font.Font("./assets/8bitoperator.ttf", 10)
-        self.imagem = pg.image.load("./assets/tela/fundo.png")
-        self.imagem = pg.transform.scale(self.imagem, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.imagem_original = pg.image.load("./assets/tela/fundo.png")
+        self.imagem = pg.transform.scale(self.imagem_original, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+    def resize(self, screen):
+        width, height = screen.get_size()
+        self.imagem = pg.transform.scale(self.imagem_original, (width, height))
 
     @abstractmethod
     def draw(self, screen):
@@ -87,15 +90,15 @@ class MainMenu(Screen):
     def __init__(self, button_width:int, button_height:int, manager):
         super().__init__(manager)
         self.name_buttons = translate("main_menu.buttons", self.manager.language)
-        self.menu_title = translate("main_menu.title", self.manager.language)
         self.dict_buttons = {}
         for i, name in enumerate(self.name_buttons):
             x = (SCREEN_WIDTH - button_width)//2
             y = (SCREEN_HEIGHT//9) + i * (button_height + 10) + 120
             self.dict_buttons[name] = Button(x, y, button_width, button_height, name, self.fonte_title)
-        self.loading_message = self.fonte_title_game.render(self.menu_title, True, (255, 255, 255))
+        self.loading_message = self.fonte_title_game.render("OnBeat!!", True, (255, 255, 255))
     
     def draw(self, screen):
+        self.resize(screen)
         screen.blit(self.imagem, (0, 0))
         screen.blit(self.loading_message, (SCREEN_WIDTH//2 - self.loading_message.get_width()//2, SCREEN_HEIGHT//2 - 150))
         for i in range(len(self.name_buttons)):
@@ -129,6 +132,7 @@ class Help(Screen):
         self.loading_message = self.fonte_title.render("OnBeat!!", True, (255, 255, 255))
 
     def draw(self, screen):
+        self.resize(screen)
         screen.blit(self.imagem, (0, 0))
         screen.blit(self.loading_message, (SCREEN_WIDTH // 2 - self.loading_message.get_width() // 2, SCREEN_HEIGHT // 2 - 150))
         self.back_button.draw(screen)
@@ -154,9 +158,10 @@ class Settings(Screen):
             x = (SCREEN_WIDTH - button_width)//2
             y = (SCREEN_HEIGHT//9) + (i) * (button_height + 10) + 120
             self.dict_buttons[name] = Button(x, y, button_width, button_height, name, self.fonte_title)
-        self.loading_message = self.fonte_title_game.render(translate("settings.title", self.manager.language), True, (255, 255, 255))
+        self.loading_message = self.fonte_title_game.render("OnBeat!!", True, (255, 255, 255))
 
     def draw(self, screen):
+        self.resize(screen)
         screen.blit(self.imagem, (0, 0))
         screen.blit(self.loading_message, (SCREEN_WIDTH//2 - self.loading_message.get_width()//2, SCREEN_HEIGHT//2 - 150))
         for i in range(len(self.name_buttons)):
@@ -193,6 +198,7 @@ class MusicCatalog(Screen):
         self.index=0
 
     def draw(self, screen):
+        self.resize(screen)
         screen.blit(self.imagem, (0, 0))
         screen.blit(self.loading_message, (SCREEN_WIDTH // 2 - self.loading_message.get_width() // 2, SCREEN_HEIGHT // 2 - 150))
         self.dict_buttons[self.manager.music_names[self.index]].draw(screen)
@@ -262,6 +268,7 @@ class Key(Screen):
             screen.blit(error_text, (SCREEN_WIDTH // 2 - error_text.get_width() // 2, SCREEN_HEIGHT - 50))
 
     def draw(self,screen):
+        self.resize(screen)
         screen.blit(self.imagem, (0, 0))
         title_text = self.fonte_subtitle.render("Configuração das teclas:", True, (225, 225, 225))
         screen.blit(title_text, (SCREEN_WIDTH // 2 - title_text.get_width() // 2, 50))
@@ -329,8 +336,11 @@ class Game(Screen):
 class GameManager:
     def __init__(self):
         pg.init()
+        pg.display.set_caption("OnBeat")
+
         self.languages = ["English", "pt/br"]
         self.language = self.languages[1]
+        
         self.screen_size = {
             "fullscreen":pg.FULLSCREEN, 
             "resize":pg.RESIZABLE
