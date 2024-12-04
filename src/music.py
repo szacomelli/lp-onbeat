@@ -1,7 +1,7 @@
 import pygame as pg
 import math
 import notes as nt
-import keyfields as kf
+import keyfields
 import playground as pgr
 
 class Music:
@@ -44,17 +44,17 @@ class Music:
     def get_music_delay(self):
         return (pg.time.get_ticks() - pg.mixer.music.get_pos())
     
-    def int_to_notes(self, key_fields : list[kf.KeyField], list : list[int], slow_notes_indexes=[], fake_notes_indexes=[], slow_notes_height=[]):
+    def int_to_notes(self, key_fields : list[keyfields.KeyField], list : list[int], slow_notes_indexes=[], fake_notes_indexes=[], slow_notes_height=[]):
         notes_list = []
         for i in list:
-            notes_list.append(nt.FastNote(key_fields[i]))
+            notes_list.append(nt.FastNote(key_fields[i],i))
         for j in slow_notes_indexes:
             kf = key_fields.index(notes_list[j].field)
-            notes_list.insert(j, nt.SlowNote(key_fields[kf], height=key_fields[kf].rect.width*(1-1/6)*slow_notes_height[slow_notes_indexes.index(j)]))
+            notes_list.insert(j, nt.SlowNote(key_fields[kf], kf, height=key_fields[kf].rect.width*(1-1/6)*slow_notes_height[slow_notes_indexes.index(j)]))
             notes_list.pop(j+1)
         for k in fake_notes_indexes:
             kf = key_fields.index(notes_list[k].field)
-            notes_list.insert(k, nt.FakeNote(key_fields[kf]))
+            notes_list.insert(k, nt.FakeNote(key_fields[kf], kf))
             notes_list.pop(k+1)
         return notes_list
     
@@ -181,21 +181,20 @@ class StardewMusic(Music):
         inc = 0
         for i in self.time_intervals:
             if ((i > 15000 and i < 15625) or (i > 23000 and i < 23501)):
-                notes.append(nt.FastNote(playgrounds[0].key_fields[1+inc]))
+                notes.append(nt.FastNote(playgrounds[0].key_fields[1+inc],1+inc))
                 inc = (inc + 1) % 2
             elif ((i > 63000 and i < 63501) or (i > 71000 and i < 71501)):
-                notes.append(nt.FastNote(playgrounds[0].key_fields[3*inc]))
+                notes.append(nt.FastNote(playgrounds[0].key_fields[3*inc], 3*inc))
                 inc = (inc + 1) % 2
             elif last != i and i < 95000:
-                notes.append(nt.FastNote(playgrounds[0].key_fields[i % 4]))
+                notes.append(nt.FastNote(playgrounds[0].key_fields[i % 4],i % 4))
             elif last != i and i % 2000 == 0:
-                notes.append(nt.FastNote(playgrounds[0].key_fields[i % 3]))
-                notes.append(nt.FastNote(playgrounds[0].key_fields[(i % 3) + 1]))
+                notes.append(nt.FastNote(playgrounds[0].key_fields[i % 3],i % 3))
+                notes.append(nt.FastNote(playgrounds[0].key_fields[(i % 3) + 1],(i % 3) + 1))
                 last = i
-            elif last != i:
-                notes.append(nt.FastNote(playgrounds[0].key_fields[i % 4]))
-                
-            last = i
+            else:
+                notes.append(nt.FastNote(playgrounds[0].key_fields[i % 4],i % 4))
+                last = i
         return notes
     
 class StakesMusic(Music):
@@ -261,9 +260,15 @@ class StakesMusic(Music):
 
         for i in self.time_intervals[1]:
             if self.time_intervals[0][0].count(i) != 0:
-                notes.append(nt.FastNote(playgrounds[0].key_fields[columns[self.time_intervals[1].index(i)]]))
+                index = columns[self.time_intervals[1].index(i)]
+                if not isinstance(index, int):
+                    raise ValueError(f"The index value is not a number: {index}")
+                notes.append(nt.FastNote(playgrounds[0].key_fields[index], index))
             elif self.time_intervals[0][1].count(i) != 0:
-                notes.append(nt.FastNote(playgrounds[1].key_fields[columns[self.time_intervals[1].index(i)]]))
+                index = columns[self.time_intervals[1].index(i)]
+                if not isinstance(index, int):
+                    raise ValueError(f"The index value is not a number: {index}")
+                notes.append(nt.FastNote(playgrounds[1].key_fields[index],index))
         
         self.time_intervals = self.time_intervals[1]
         

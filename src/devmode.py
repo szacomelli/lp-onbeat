@@ -6,6 +6,8 @@ import notes as nt
 
 pg_numbers = [1,1]
 
+pg.init()
+screen = pg.display.set_mode((800, 600))
 playgrounds = [pgr.Playground(50,640,480,keys=[pg.K_d,pg.K_f,pg.K_j,pg.K_k], blank_space_percentage=0.1,pg_numbers=pg_numbers)]
 
 

@@ -1,6 +1,7 @@
 import pygame as pg
 import keyfields
 from abc import ABC, abstractmethod
+import os
 
 class Note(ABC): 
     def __init__(self, field : keyfields.KeyField, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
@@ -15,7 +16,7 @@ class Note(ABC):
         self.ratio = 1
 
     @abstractmethod
-    def draw_rect(self):
+    def draw(self):
         raise NotImplementedError("You should implement this method")
     
     @abstractmethod
@@ -39,19 +40,28 @@ class Note(ABC):
         
     
 class FastNote(Note):
-    def __init__(self, field : keyfields.KeyField, speed=1, intervals=[[0, 10, 20], [5, 3, 1]]):
+    def __init__(self, field : keyfields.KeyField, id, speed=1, intervals=[[0, 10, 20], [5, 3, 1]]):
         super().__init__(field, speed, intervals)
         size = self.field.rect.width*(1-1/6)
         self.y_spawn = 0 - size
         self.rect = pg.Rect(field.rect.centerx - size/2, self.y_spawn, size, size)
         self.points_args = [field.rect.y] 
 
-    def draw_rect(self, display):
+        # sprites
+        sprite_path = keyfields.MakeSprite.load_sprites("./assets/notes/fastnotes/")[id]
+        self.sprite = keyfields.MakeSprite(self.rect, sprite_path)
+        
+
+    def draw(self, display):
         if self.updating == True and self.destructed == False:
-            if abs(self.rect.y - self.field.rect.y) <= 10*self.ratio:
-                pg.draw.rect(display, (255,255,255), self.rect)
-            else:
-                pg.draw.rect(display, self.color, self.rect)
+            # verify
+            # if abs(self.rect.y - self.field.rect.y) <= 10*self.ratio:
+            #     pg.draw.rect(display, (255,255,255), self.rect)
+            # else:
+            #     pg.draw.rect(display, self.color, self.rect)
+
+            # sprites
+            self.sprite.draw(display)
 
     def update(self, speed, starting_pos, label_duration):
             self.rect.centerx = self.field.rect.centerx
@@ -77,7 +87,7 @@ class FastNote(Note):
         return True
 
 class SlowNote(Note):
-    def __init__(self, field : keyfields.KeyField, speed=1,intervals=[[0, 10, 20], [5, 3, 1]], height=150):
+    def __init__(self, field : keyfields.KeyField, id, speed=1,intervals=[[0, 10, 20], [5, 3, 1]], height=150):
         super().__init__(field, speed, intervals)
         self.height = height
         width = self.field.rect.width*(1-1/6)
@@ -93,9 +103,29 @@ class SlowNote(Note):
         self.top_selected = False
         self.first_update = True
 
-    def draw_rect(self, display):
+        # sprites
+        self.sprite_sections = []
+        num_sprites = int(self.height_ratio)
+        self.sprite_heigth = self.height / num_sprites
+        filepath = "./assets/notes/slownotes/"
+
+        folders = sorted([folder for folder in os.listdir(filepath) if os.path.isdir(os.path.join(filepath, folder))])
+        if not (0 <= id < len(folders)):
+            raise ValueError(f"The 'id={id}' index is out of the valid range (0 to {len(folders) - 1}).")
+        sprite_folder = os.path.join(filepath, folders[id])
+        sprite_files = sorted([file for file in os.listdir(sprite_folder) if os.path.isfile(os.path.join(sprite_folder, file))])
+        sprite_dict = {0: 3, num_sprites - 1: 0, num_sprites // 2: 2}
+
+        for i in range(num_sprites):
+            sprite_rect = pg.Rect(self.rect.x, self.rect.y + i * self.sprite_heigth, width, self.sprite_heigth)
+            sprite_path = os.path.join(sprite_folder, sprite_files[sprite_dict.get(i, 1)])
+            self.sprite_sections.append(keyfields.MakeSprite(sprite_rect, sprite_path))
+
+    def draw(self, display):
         if self.updating == True:# and self.destructed == False:
-            pg.draw.rect(display, self.color, self.rect)
+            # pg.draw.rect(display, self.color, self.rect)
+            for sprite in self.sprite_sections:
+                sprite.draw(display)
 
     def update(self, speed, starting_pos, label_duration):
         self.rect.height = (int((self.rect.height*self.speed)/label_duration))*label_duration/self.speed + self.rect.width
@@ -104,7 +134,17 @@ class SlowNote(Note):
         self.rect.centerx = self.field.rect.centerx
         self.rect.width, self.rect.height = self.calculate_size()
         self.rect.bottom = self.field.rect.bottom- (self.calculate_time_gap(starting_pos))/speed 
-        
+
+        # sprites
+        sprite_height = self.rect.height / len(self.sprite_sections)
+        for i, sprite in enumerate(self.sprite_sections):
+            sprite.rect.x = self.rect.x
+            sprite.rect.y = self.rect.y + i * sprite_height
+            sprite.rect.width = self.rect.width
+            sprite.rect.height = sprite_height
+
+
+        # verify
         if self.field.rect.bottom + 50*self.ratio < self.rect.top:# and not self.pressed:
             self.pressed = False
             self.destructed = True
@@ -133,17 +173,22 @@ class SlowNote(Note):
             return False
 
 class FakeNote(Note):
-    def __init__(self, field : keyfields.KeyField, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
+    def __init__(self, field : keyfields.KeyField, id, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
         super().__init__(field, speed, intervals)
         height = self.field.rect.width - self.field.bias
         self.y_spawn = 0 - height
         self.rect = pg.Rect(field.rect.x + 5, self.y_spawn, 20, height)
         self.color = tuple(element/2 for element in self.field.unpressed_color)
+
+        sprite_path = keyfields.MakeSprite.load_sprites("./assets/notes/fakenotes/")[id]
+        self.sprite = keyfields.MakeSprite(self.rect, sprite_path)
         
 
-    def draw_rect(self, display):
+    def draw(self, display):
         if self.destructed == False:
-            pg.draw.rect(display, self.color, self.rect)
+            # pg.draw.rect(display, self.color, self.rect)
+            # Adding sprite drawing
+            self.sprite.draw(display)
 
     def update(self,speed, starting_pos, label_duration):
         if self.updating:

@@ -1,6 +1,7 @@
 import pygame as pg
 import notes as nt, keyfields as kf
 
+
 class Playground:
     def __init__(self, bottom_padding, screen_width, screen_height, black_bars=50, keys=[pg.K_s, pg.K_d, pg.K_k, pg.K_l], blank_space_percentage=0.1, pg_numbers=[1,1]):
         usable_width = screen_width-2*black_bars
@@ -24,17 +25,27 @@ class Playground:
         
         kf_x = [x,x+self.interval,x+self.interval*2,x+self.interval*3]
         kf_y = screen_height - bottom_padding
+
+        # Sprites for the key fields   
+        sprite = kf.MakeSprite.load_sprites("./assets/notes/keyfield/")
+        screen = pg.display.get_surface()
+
+
         
-        self.key_fields = [kf.KeyField(kf_x[0], kf_y, (255, 0, 0), (220, 0, 0), keys[0], size=self.key_field_size),
-              kf.KeyField(kf_x[1], kf_y, (0, 255, 0), (0, 220, 0), keys[1],size=self.key_field_size), 
-              kf.KeyField(kf_x[2], kf_y, (0, 0, 255), (0, 0, 220), keys[2],size=self.key_field_size), 
-              kf.KeyField(kf_x[3], kf_y, (255, 255, 0), (220, 220, 0), keys[3],size=self.key_field_size),]
-        
+        self.key_fields = [kf.KeyField(kf_x[0], kf_y, (255, 0, 0), (220, 0, 0), keys[0], sprite[0], size=self.key_field_size),
+              kf.KeyField(kf_x[1], kf_y, (0, 255, 0), (0, 220, 0), keys[1], sprite[1], size=self.key_field_size), 
+              kf.KeyField(kf_x[2], kf_y, (0, 0, 255), (0, 0, 220), keys[2], sprite[2], size=self.key_field_size), 
+              kf.KeyField(kf_x[3], kf_y, (255, 255, 0), (220, 220, 0), keys[3], sprite[3],size=self.key_field_size),]
+
+        self.background_rect = self.calc_background_rect(self.key_fields)
+        self.background_sprite = pg.image.load("./assets/game_screen/barras.png").convert_alpha()
+        self.background_sprite = pg.transform.scale(self.background_sprite, (self.background_rect.width, self.background_rect.height))
         
         self.first_update = True
     
 
     def update(self, screen, update_ratios, speed,screen_size=[480,640]):
+
         width_ratio = screen.get_width() / screen_size[1]
         height_ratio = screen.get_height() / screen_size[0]
         self.bottom_padding = self.bottom_padding*height_ratio
@@ -48,11 +59,30 @@ class Playground:
             i.bias = bias
             i.rect.x = x
             i.rect.y = y
+
+            i.space_rect.x = x
+            i.trian_rect.x = x
+            i.shadow_rect.x = x
+
+            i.shadow_rect.y = y + y/50
+            
             x = x + self.interval
             
             i.rect.width = self.key_field_size
             i.rect.height = self.key_field_size
 
+            i.space_rect.width = self.key_field_size
+            i.space_rect.height = screen.get_height()
+            i.trian_rect.width = self.key_field_size
+            i.trian_rect.height = self.key_field_size
+            i.shadow_rect.width = self.key_field_size
+            i.shadow_rect.height = self.key_field_size
+
+        self.background_rect = self.calc_background_rect(self.key_fields)
+        self.background_sprite = pg.transform.scale(
+            pg.image.load("./assets/game_screen/barras.png").convert_alpha(),
+            (self.background_rect.width, self.background_rect.height),
+        )
         if width_ratio != 1:
             speed = speed / width_ratio
         
@@ -60,4 +90,16 @@ class Playground:
         self.info[2] = self.info[2]*width_ratio
 
         return ([screen.get_height(),screen.get_width()], speed)
+
+    def draw(self, screen):
+        screen.blit(self.background_sprite, (self.background_rect.x, self.background_rect.y))
+    def calc_background_rect(self, keyfields: list):
+        first_keyfield = keyfields[0]
+        last_keyfield = keyfields[-1]
+        
+        x_start = first_keyfield.rect.x - 10
+        x_end = last_keyfield.rect.x + last_keyfield.rect.width + 10
+        
+        screen_height = pg.display.get_surface().get_height()
+        return pg.Rect(x_start, 0, x_end - x_start, screen_height)
         
