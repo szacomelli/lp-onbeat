@@ -14,19 +14,19 @@ class VoidMusic(music.Music):
     def __init__(self, file, speed, bpm):
         self.paused = False
         self.label_duration = 60000/(4*bpm)
-        self.file_path = file
+        self._file_path = file
         self.notes_list = []
-        self.labels = []
-        self.columns = []
+        self._labels = []
+        self._columns = []
         self.time_intervals = []
         self.multiplayer_info = [False, 1]
         self.total_notes = 0
         self.speed = speed
         self.playgrounds = playgrounds
-        self.song = pg.mixer.Sound(file)
-        self.channel = pg.mixer.Channel(1)
+        self._song = pg.mixer.Sound(file)
+        self._channel = pg.mixer.Channel(1)
         self.has_panning = False
-        a = pg.mixer.Sound(self.file_path)
+        a = pg.mixer.Sound(self._file_path)
         self.length = a.get_length()
 
 class PlayerMusic(music.Music):
@@ -36,38 +36,38 @@ class PlayerMusic(music.Music):
         self.file_delay = file_delay
         self.bpm = bpm
         self.label_duration = (60000/(4*self.bpm))
-        self.columns = int_columns
-        self.fake_notes = fake_notes
-        self.slow_notes = slow_notes
-        self.slow_heights = slow_heights    
+        self._columns = int_columns
+        self._fake_notes = fake_notes
+        self._slow_notes = slow_notes
+        self._slow_heights = slow_heights    
         self.playgrounds = playgrounds
         self.multiplayer_info = [False, 1]
-        self.file_path = file
+        self._file_path = file
         
-        self.notes_list = self.create_notes(self.playgrounds)
-        self.labels = labels
-        self.time_intervals = self.create_intervals()
+        self.notes_list = self._create_notes(self.playgrounds)
+        self._labels = labels
+        self.time_intervals = self._create_intervals()
         
         self.total_notes = len(self.notes_list)
         self.speed = speed
         
         
-        self.song = pg.mixer.Sound(file)
-        self.channel = pg.mixer.Channel(1)
+        self._song = pg.mixer.Sound(file)
+        self._channel = pg.mixer.Channel(1)
         self.has_panning = False
-        a = pg.mixer.Sound(self.file_path)
+        a = pg.mixer.Sound(self._file_path)
         self.length = a.get_length()
         
         
-    def create_intervals(self):
+    def _create_intervalss(self):
         intervals = []
         label_length = 60000/(4*self.bpm)
-        for i in self.labels:
+        for i in self._labels:
             intervals.append(i*label_length + self.file_delay) 
         return intervals
     
-    def create_notes(self, playgrounds : list[pgr.Playground]):
-        note_list = self.int_to_notes(playgrounds[0].key_fields,self.columns,self.slow_notes,self.fake_notes,self.slow_heights)
+    def _create_notes(self, playgrounds : list[pgr.Playground]):
+        note_list = self._int_to_notes(playgrounds[0].key_fields,self._columns,self._slow_notes,self._fake_notes,self._slow_heights)
         return note_list
 
 
@@ -75,11 +75,11 @@ class DevMode:
     
     def __init__(self, music_name, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]],dkeys=[pg.K_LSHIFT, pg.K_q, pg.K_e, pg.K_r, pg.K_m, pg.K_LEFT, pg.K_RIGHT,
                                                                                pg.K_UP, pg.K_DOWN, pg.K_RETURN, pg.K_DELETE, pg.K_INSERT, pg.K_p], active=False, editing_music=False):
-        self.configs = self.read_configs()
+        self.configs = self.__read_configs()
         self.music_info = self.configs[music_name]
         
-        if editing_music: self.edit_music(music_name)
-        if self.configs.keys().isdisjoint([music_name]): self.new_music(music_name)
+        if editing_music: self._edit_music(music_name)
+        if self.configs.keys().isdisjoint([music_name]): self._new_music(music_name)
         
         self.music = music_name
         self.active = active
@@ -106,14 +106,14 @@ class DevMode:
         
         self.round = cr.CurrentRound(self.active_music, dev=True)
     
-    def edit_music(self, name):
+    def _edit_music(self, name):
         self.configs[name]["music_file"] = input("new music file path: ")
         self.configs[name]["speed"] = 10/int(input("new speed: "))
         self.configs[name]["BPM"] = int(input("new bpm: "))
         self.configs[name]["file_delay"] = int(input("new music delay: "))
-        self.write_configs(self.configs)
+        self.__write_configs(self.configs)
     
-    def new_music(self, name):
+    def _new_music(self, name):
             bpm = input("music bpm: ")
             speed = input("music speed: ")
             path = input("path (relative to the game folder lp-onbeat): ")
@@ -139,10 +139,10 @@ class DevMode:
             self.configs[name]["fake_notes"] = []
             self.configs[name]["slow_notes"] = []
             self.configs[name]["slow_durations"] = []
-            self.write_configs(self.configs)
+            self.__write_configs(self.configs)
     
         
-    def dev_shorts(self, event, notes_to_play, max_index, stop_index, round_callback, music_start_pos):
+    def dev_shorts(self, event, notes_to_play, max_index, stop_index, music_start_pos):
         
         if event.type == pg.KEYDOWN:
             if event.key == self.developer_keys[0]:
@@ -165,7 +165,7 @@ class DevMode:
                     if self.active_music.paused: pg.mixer.music.pause()
                     
                     music_start_pos = time_back*1000
-                    round_callback(max(0,music_start_pos), True, False)
+                    self.__round_att_update(max(0,music_start_pos), True, False)
 
                     for i in range(0, stop_index+1):
                         notes_to_play[i].reset()
@@ -177,13 +177,13 @@ class DevMode:
                     if self.active_music.paused: pg.mixer.music.pause()
                     
                     music_start_pos = time_forward*1000   
-                    round_callback(music_start_pos, False, False)
+                    self.__round_att_update(music_start_pos, False, False)
 
             if event.key == self.developer_keys[3]:
                 if not self.active_music.paused:
                     self.max_visible_index = 0
                     pg.mixer.music.play(start=0)
-                    round_callback(0, True, False)
+                    self.__round_att_update(0, True, False)
                     
             if event.key == pg.K_0:
                 pg.mixer.quit()
@@ -196,28 +196,28 @@ class DevMode:
                 self.active_music.play_music()
             
             if event.key == self.developer_keys[4]:  
-                self.recording_mode() 
+                self.__recording_mode() 
                 #change_music()
                 
             if event.key == self.developer_keys[5]:  
                 if self.editing_note:
-                    self.change_note_position(-1, notes_to_play, max_index, music_start_pos)
+                    self.__change_note_position(-1, notes_to_play, max_index)
                     
             if event.key == self.developer_keys[6]:  
                 if self.editing_note:
-                    self.change_note_position(1, notes_to_play, max_index, music_start_pos)
+                    self.__change_note_position(1, notes_to_play, max_index)
                 
             if event.key == self.developer_keys[7]:  
                 if self.editing_note:
-                    self.change_note_position(2, notes_to_play, max_index, music_start_pos)
+                    self.__change_note_position(2, notes_to_play, max_index)
                 else:
-                    self.change_selection(max_index, False, notes_to_play)
+                    self.__change_selection(max_index, False, notes_to_play)
                 
             if event.key == self.developer_keys[8]:  
                 if self.editing_note:
-                    self.change_note_position(-2, notes_to_play, max_index, music_start_pos)
+                    self.__change_note_position(-2, notes_to_play, max_index)
                 else:
-                    self.change_selection(max_index, True, notes_to_play)
+                    self.__change_selection(max_index, True, notes_to_play)
 
             if event.key == self.developer_keys[9]:
                 if self.editing_note:
@@ -226,16 +226,23 @@ class DevMode:
                     self.editing_note = True
             
             if event.key == self.developer_keys[10]:
-                self.destruct_note(notes_to_play)
-                round_callback(music_start_pos, False, True)
+                self.__destruct_note(notes_to_play)
+                self.__round_att_update(music_start_pos, False, True)
             
             if event.key == self.developer_keys[11]:
-                self.add_note(notes_to_play)
+                self.__add_note(notes_to_play)
             
             if event.key == self.developer_keys[12]:
-                if self.editing_note: self.change_note_type(notes_to_play)
+                if self.editing_note: self.__change_note_type(notes_to_play)
+                
+    def __round_att_update(self, music_start_pos, restart_index, decrease_stop_index):
+        if restart_index: self.round.start_index = 0
+        for note in self.round.notes_to_play:
+            note.reset()
+        self.round.music_start_pos = music_start_pos
+        if decrease_stop_index: self.round.stop_index -= 1
     
-    def change_note_type(self, notes):
+    def __change_note_type(self, notes):
         idx = self.index_selected
         current_note = notes[idx]
         speed = current_note.speed
@@ -261,7 +268,7 @@ class DevMode:
         notes[idx].rect.width = current_note.rect.width
         notes[idx].ratio = current_note.ratio
             
-    def change_note_position(self, direction, notes, max_index, music_starting_pos):
+    def __change_note_position(self, direction, notes, max_index):
         labels = self.music_info["labels"]
         columns = self.music_info["keyfields"]
         if len(notes) == 0: 
@@ -282,13 +289,13 @@ class DevMode:
                         note.rect.height -= self.music_list[1].label_duration/(note.speed)
                         note.height_ratio = note.rect.height/note.rect.width
                         while labels[self.index_selected] > labels[self.index_selected + 1]:
-                            self.update_configs(notes, self.index_selected, 1, True)
+                            self.__update_configs(notes, self.index_selected, 1, True)
                             self.index_selected += 1
             else:
                 notes[self.index_selected].time_interval += self.music_list[1].label_duration
                 labels[self.index_selected] += 1
                 while self.index_selected != max_index and labels[self.index_selected] > labels[self.index_selected + 1]:
-                    self.update_configs(notes, self.index_selected, 1, False)
+                    self.__update_configs(notes, self.index_selected, 1, False)
                     self.index_selected += 1 
         elif direction == -2:
             note = notes[self.index_selected]
@@ -299,7 +306,7 @@ class DevMode:
                     labels[self.index_selected] -= 1
                     note.height_ratio = note.rect.height/note.rect.width
                     while self.index_selected != 0 and labels[self.index_selected] < labels[self.index_selected - 1]:
-                        self.update_configs(notes, self.index_selected, -1, True)
+                        self.__update_configs(notes, self.index_selected, -1, True)
                         self.index_selected -= 1                        
                 else:
                     if note.rect.height != note.rect.width:
@@ -312,7 +319,7 @@ class DevMode:
                 self.music_info["labels"][self.index_selected] -= 1
                 #while the label of selected is less than the previous
                 while self.index_selected != 0 and labels[self.index_selected] < labels[self.index_selected - 1]:
-                    self.update_configs(notes, self.index_selected, -1, False)
+                    self.__update_configs(notes, self.index_selected, -1, False)
                     self.index_selected -= 1
             
         #left and right
@@ -327,7 +334,7 @@ class DevMode:
             notes[self.index_selected].color = notes[self.index_selected].field.unpressed_color
             columns[self.index_selected] = (columns[self.index_selected] - 1) % 4
         
-    def update_configs(self, notes, idx, value, isSlow):
+    def __update_configs(self, notes, idx, value, isSlow):
         swap_idx = idx + value
         if isSlow:
             slow_idx = self.music_info["slow_notes"].index(idx)
@@ -339,7 +346,7 @@ class DevMode:
             self.music_info["keyfields"][swap_idx], self.music_info["keyfields"][idx]
         notes[idx], notes[swap_idx] = notes[swap_idx], notes[idx]
 
-    def destruct_note(self, notes : list[int]):
+    def __destruct_note(self, notes : list[int]):
         if len(notes) != 0 and len(notes) > self.index_selected:
             self.music_info["labels"].pop(self.index_selected)
             self.music_info["keyfields"].pop(self.index_selected)
@@ -352,7 +359,7 @@ class DevMode:
                 self.music_info["fake_notes"].pop(idx)
             notes.pop(self.index_selected)
 
-    def add_note(self, notes : list):
+    def __add_note(self, notes : list):
         idx = self.index_selected
         if len(notes) == 0:
             new_note = nt.FastNote(self.active_music.playgrounds[0].key_fields[0])
@@ -370,7 +377,7 @@ class DevMode:
             column = self.music_info["keyfields"][idx]
             self.music_info["keyfields"].insert(self.index_selected+1, column)
     
-    def change_selection(self, max_index, down, notes):
+    def __change_selection(self, max_index, down, notes):
         if len(notes) == 0: 
             return
         if down: 
@@ -394,7 +401,7 @@ class DevMode:
             self.index_selected = min((self.index_selected + 1), max_index)
             if isinstance(notes[self.index_selected], nt.SlowNote): notes[self.index_selected].top_selected = False
              
-    def draw_selection(self, screen, notes : list[nt.Note], music_start_pos, stop_index, round_callback):
+    def draw_selection(self, screen, notes : list[nt.Note], music_start_pos, stop_index):
         if self.active_music.paused and len(notes) > self.index_selected:
             note = notes[self.index_selected]
             rect_bottom = note.rect.bottom
@@ -413,7 +420,7 @@ class DevMode:
                     pg.mixer.music.pause()
                     
                 music_start_pos = time_back*1000
-                round_callback(max(0,music_start_pos), True, False)
+                self.__round_att_update(max(0,music_start_pos), True, False)
                 for i in range(0, stop_index+1):
                     notes[i].reset()
             elif rect_y <= 0:
@@ -423,7 +430,7 @@ class DevMode:
                     pg.mixer.music.pause()
                     
                 music_start_pos = time_forward*1000   
-                round_callback(music_start_pos, False, False)
+                self.__round_att_update(music_start_pos, False, False)
                 
             # draw the selection
             left = note.rect.x - 5*note.ratio
@@ -439,17 +446,17 @@ class DevMode:
                 rect = pg.rect.Rect(left, note.rect.y- 5*note.ratio, size, note.rect.height+10*note.ratio)
                 pg.draw.rect(screen, (255,255,255), rect, width=round(note.ratio))
     
-    def read_configs(self):
+    def __read_configs(self):
         with open('./src/config/music_test.json', 'r') as json_file:
             music_data = json.load(json_file)
         return music_data
     
-    def write_configs(self, music_data):
+    def __write_configs(self, music_data):
         with open('./src/config/music_test.json', 'w') as json_file:
             json.dump(music_data, json_file)
             
-    def recording_mode(self):
-        self.write_configs(self.configs)
+    def __recording_mode(self):
+        self.__write_configs(self.configs)
         self.hidden_music_idx = self.active_music_idx
         self.active_music_idx = (self.hidden_music_idx + 1) % 2
         if len(self.music_list[0].labels) != 0:    
@@ -458,7 +465,7 @@ class DevMode:
             self.music_info["slow_notes"] = []
             self.music_info["slow_durations"] = []
             self.music_info["fake_notes"] = []
-            self.write_configs(self.configs)
+            self.__write_configs(self.configs)
         
         if self.active_music == self.music_list[0]:             
             self.music_list[1] = PlayerMusic(self.music_info["music_file"], self.music_info["speed"],
@@ -476,7 +483,7 @@ class DevMode:
         return
         
     def on_event(self, event):
-        self.dev_shorts(event, self.round.notes_to_play, self.round.max_index, self.round.stop_index, self.round.round_callback, self.round.music_start_pos)        
+        self.dev_shorts(event, self.round.notes_to_play, self.round.max_index, self.round.stop_index, self.round.music_start_pos)        
         self.round.on_event(event)
         
     def draw(self, screen : pg.Surface, music_start_pos, font_size):
@@ -490,8 +497,6 @@ class DevMode:
             text =  font.render("Recording", False, (220, 0, 0))
             screen.blit(text, (screen.get_width()-text.get_width() - 5, 0))    
        
-    
-        
     def create_music(self, music_start_pos, column):
         if self.active_music == self.music_list[0] and pg.mixer.music.get_busy():
             self.music_list[0].columns.append(column) 

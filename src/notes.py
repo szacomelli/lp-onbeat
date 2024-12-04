@@ -3,13 +3,13 @@ import keyfields
 from abc import ABC, abstractmethod
 
 class Note(ABC): 
-    def __init__(self, field : keyfields.KeyField, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
+    def __init__(self, field : keyfields.KeyField, speed=2, intervals=[[5, 10, 30], [5, 3, 1]]):
         self.color = field.unpressed_color
         self.speed = speed
         self.destructed = False
         self.field = field
         self.updating = True
-        self.point_intervals = intervals
+        self._point_intervals = intervals
         self.points_args = []
         self.time_interval = 0
         self.ratio = 1
@@ -39,7 +39,7 @@ class Note(ABC):
         
     
 class FastNote(Note):
-    def __init__(self, field : keyfields.KeyField, speed=1, intervals=[[0, 10, 20], [5, 3, 1]]):
+    def __init__(self, field : keyfields.KeyField, speed=1, intervals=[[5, 10, 20], [5, 3, 1]]):
         super().__init__(field, speed, intervals)
         size = self.field.rect.width*(1-1/6)
         self.y_spawn = 0 - size
@@ -55,7 +55,7 @@ class FastNote(Note):
 
     def update(self, speed, starting_pos, label_duration):
             self.rect.centerx = self.field.rect.centerx
-            self.rect.width, self.rect.height = self.calculate_size()
+            self.rect.width, self.rect.height = self._calculate_size()
             
 
             self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed#+= self.speed
@@ -65,19 +65,19 @@ class FastNote(Note):
 
     def calculate_points(self):
         bias = self.field.rect.y - self.rect.y
-        if bias <= self.point_intervals[0][0] and bias >= -self.point_intervals[0][0]: return self.point_intervals[1][0]
-        elif bias <= self.point_intervals[0][1] and bias >= -self.point_intervals[0][1]: return self.point_intervals[1][1]
-        elif bias <= self.point_intervals[0][2] and bias >= -self.point_intervals[0][2]: return self.point_intervals[1][2]
+        if bias <= self._point_intervals[0][0] and bias >= -self._point_intervals[0][0]: return self._point_intervals[1][0]
+        elif bias <= self._point_intervals[0][1] and bias >= -self._point_intervals[0][1]: return self._point_intervals[1][1]
+        elif bias <= self._point_intervals[0][2] and bias >= -self._point_intervals[0][2]: return self._point_intervals[1][2]
         else: return 1
 
-    def calculate_size(self):
+    def _calculate_size(self):
         return (self.field.rect.width,self.field.rect.height)
 
     def note_ended(self):
         return True
 
 class SlowNote(Note):
-    def __init__(self, field : keyfields.KeyField, speed=1,intervals=[[0, 10, 20], [5, 3, 1]], height=150):
+    def __init__(self, field : keyfields.KeyField, speed=1,intervals=[[5, 10, 30], [5, 3, 1]], height=150):
         super().__init__(field, speed, intervals)
         self.height = height
         width = self.field.rect.width*(1-1/6)
@@ -102,7 +102,7 @@ class SlowNote(Note):
         self.height_ratio = self.rect.height/self.rect.width
         self.speed = speed
         self.rect.centerx = self.field.rect.centerx
-        self.rect.width, self.rect.height = self.calculate_size()
+        self.rect.width, self.rect.height = self._calculate_size()
         self.rect.bottom = self.field.rect.bottom- (self.calculate_time_gap(starting_pos))/speed 
         
         if self.field.rect.bottom + 50*self.ratio < self.rect.top:# and not self.pressed:
@@ -121,7 +121,7 @@ class SlowNote(Note):
         self.y_holding_start = 0
         self.y_holding_end = 0
 
-    def calculate_size(self):
+    def _calculate_size(self):
         return (self.field.rect.width,self.field.rect.width*self.height_ratio)
     
     def note_ended(self):
@@ -148,7 +148,7 @@ class FakeNote(Note):
     def update(self,speed, starting_pos, label_duration):
         if self.updating:
             self.rect.centerx = self.field.rect.centerx
-            self.rect.width, self.rect.height = self.calculate_size()
+            self.rect.width, self.rect.height = self._calculate_size()
 
             self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed
 
@@ -162,7 +162,7 @@ class FakeNote(Note):
     def calculate_points(self):
         return -1
     
-    def calculate_size(self):
+    def _calculate_size(self):
         return (self.field.rect.width,self.field.rect.height)
     
     def note_ended(self):
