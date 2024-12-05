@@ -360,7 +360,7 @@ class MusicCatalog(Screen):
             self.manager.round_start()
             self.start_game(1)
 
-        if self.dict_buttons[self.name_player[1]].is_clicked(event):
+        elif self.dict_buttons[self.name_player[1]].is_clicked(event):
             self.manager.multiplayer = True
             self.manager.define_music(self.index)
             self.manager.round_start()
