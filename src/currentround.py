@@ -6,7 +6,7 @@ import devmode
 import os
 
 class CurrentRound:
-<<<<<<< HEAD
+
     def __init__(self,  music : music.Music, screen_size=[480,640], switch_key=pg.K_SPACE, dev=False):
         # basic atributtes
         """
@@ -52,7 +52,7 @@ class CurrentRound:
         if not isinstance(dev, bool):
             raise TypeError("The 'dev' parameter must be a boolean.")
         
-=======
+
     """
     The custom music created by the player
     
