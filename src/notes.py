@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 import os
 
 class Note(ABC): 
+<<<<<<< HEAD
     def __init__(self, field : keyfields.KeyField, speed=2, intervals=[[0, 10, 20], [5, 3, 1]]):
         """
         Constructor for Note
@@ -18,6 +19,9 @@ class Note(ABC):
             A 2D list of intervals of each note (default is [[0, 10, 20], [5, 3, 1]])
         """
         
+=======
+    def __init__(self, field : keyfields.KeyField, speed=2, intervals=[[5, 10, 30], [5, 3, 1]]):
+>>>>>>> main
         self.color = field.unpressed_color
         self.speed = speed
         self.destructed = False
@@ -71,6 +75,7 @@ class Note(ABC):
         
     
 class FastNote(Note):
+<<<<<<< HEAD
     def __init__(self, field : keyfields.KeyField, id, speed=1, intervals=[[0, 10, 20], [5, 3, 1]]):
         """
         Initializes a FastNote object
@@ -95,6 +100,9 @@ class FastNote(Note):
         sprite : keyfields.MakeSprite
             The sprite of the note
         """
+=======
+    def __init__(self, field : keyfields.KeyField, speed=1, intervals=[[5, 10, 20], [5, 3, 1]]):
+>>>>>>> main
         super().__init__(field, speed, intervals)
         size = self.field.rect.width*(1-1/6)
         self.y_spawn = 0 - size
@@ -129,8 +137,14 @@ class FastNote(Note):
             self.sprite.draw(display)
 
     def update(self, speed, starting_pos, label_duration):
+<<<<<<< HEAD
         """
         Updates the FastNote's position and checks if it should be destructed.
+=======
+            self.rect.centerx = self.field.rect.centerx
+            self.rect.width, self.rect.height = self._calculate_size()
+            
+>>>>>>> main
 
         Parameters
         ----------
@@ -181,6 +195,7 @@ class FastNote(Note):
         elif bias <= self.point_intervals[0][2] and bias >= -self.point_intervals[0][2]: return self.point_intervals[1][2]
         else: return 1
 
+<<<<<<< HEAD
     def calculate_size(self):
         """
         Calculates the size of the note based on the size of its associated key field.
@@ -190,6 +205,9 @@ class FastNote(Note):
         tuple
             A tuple containing the width and height of the note. The width is the same as the width of the key field and the height is the same as the height of the key field.
         """
+=======
+    def _calculate_size(self):
+>>>>>>> main
         return (self.field.rect.width,self.field.rect.height)
 
     def note_ended(self):
@@ -208,6 +226,7 @@ class FastNote(Note):
         return True
 
 class SlowNote(Note):
+<<<<<<< HEAD
     def __init__(self, field : keyfields.KeyField, id, speed=1,intervals=[[0, 10, 20], [5, 3, 1]], height=150):
         """
         Initializes a SlowNote object.
@@ -246,6 +265,9 @@ class SlowNote(Note):
         sprite_sections : list
             The list of sprite sections for the note's visual representation.
         """
+=======
+    def __init__(self, field : keyfields.KeyField, speed=1,intervals=[[5, 10, 30], [5, 3, 1]], height=150):
+>>>>>>> main
         super().__init__(field, speed, intervals)
         self.height = height
         width = self.field.rect.width*(1-1/6)
@@ -319,7 +341,7 @@ class SlowNote(Note):
         self.height_ratio = self.rect.height/self.rect.width
         self.speed = speed
         self.rect.centerx = self.field.rect.centerx
-        self.rect.width, self.rect.height = self.calculate_size()
+        self.rect.width, self.rect.height = self._calculate_size()
         self.rect.bottom = self.field.rect.bottom- (self.calculate_time_gap(starting_pos))/speed 
 
         # sprites
@@ -362,6 +384,7 @@ class SlowNote(Note):
         self.y_holding_start = 0
         self.y_holding_end = 0
 
+<<<<<<< HEAD
     def calculate_size(self):
         """
         Calculates the size of the SlowNote object based on the field's width and the height ratio.
@@ -371,6 +394,9 @@ class SlowNote(Note):
         tuple
             A tuple containing the width and height of the SlowNote object.
         """
+=======
+    def _calculate_size(self):
+>>>>>>> main
         return (self.field.rect.width,self.field.rect.width*self.height_ratio)
     
     def note_ended(self):
@@ -423,6 +449,7 @@ class FakeNote(Note):
         self.sprite = keyfields.MakeSprite(self.rect, sprite_path)
         
 
+<<<<<<< HEAD
     def draw(self, display):
         """
         Draws the FakeNote object on the given display surface.
@@ -462,16 +489,29 @@ class FakeNote(Note):
         per frame while the note is being updated.
         """
         if self.updating:
+=======
+    def draw_rect(self, display):
+        if self.updating == True:
+            pg.draw.rect(display, self.color, self.rect)
+
+    def update(self,speed, starting_pos, label_duration):
+>>>>>>> main
             self.rect.centerx = self.field.rect.centerx
-            self.rect.width, self.rect.height = self.calculate_size()
+            self.rect.width, self.rect.height = self._calculate_size()
+            
 
-            self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed
-
+            self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed#+= self.speed
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True
+<<<<<<< HEAD
                 #self.field.points += 1
                 self.updating = False
                 
+=======
+                self.updating = False                
+                
+
+>>>>>>> main
     def calculate_points(self):
         """
         Calculates the points earned by the user for this note.
@@ -484,6 +524,7 @@ class FakeNote(Note):
         
         return -1
     
+<<<<<<< HEAD
     def calculate_size(self):
         """
         Calculates the size of the FakeNote based on the dimensions of the associated key field.
@@ -494,6 +535,9 @@ class FakeNote(Note):
             A tuple containing the width and height of the FakeNote, determined by the
             width and height of the key field's rectangle.
         """
+=======
+    def _calculate_size(self):
+>>>>>>> main
         return (self.field.rect.width,self.field.rect.height)
     
     def note_ended(self):

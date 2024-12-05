@@ -3,7 +3,9 @@ import math
 import notes as nt
 import keyfields as kf
 import playground as pgr
+from abc import ABC, abstractmethod
 
+# these classes keep the information to build the original songs of the game
 class Music:
     def __init__(self, file, speed=0, bpm=120, multiplayer=[False,1]):
         """
@@ -50,20 +52,28 @@ class Music:
             Length of the music in miliseconds
         """
         self.bpm = bpm
+        # label duration: the minium time duration of a note (and minimum interval of time between notes)
+        # (in miliseconds)
         self.label_duration = 60000/(4*self.bpm)
-        self.file_path = file
-        self.time_intervals = self.create_intervals()
+        # path of the .mp3 or .ogg
+        self._file_path = file
+        # interval of a note = the moment the note plays in the song (in miliseconds)
+        self.time_intervals = self._create_intervals()
+        # a list with all the notes (objects) that will be played
         self.notes_list = []
         self.total_notes = len(self.notes_list)
+        # how fast the notes will fall
         self.speed = speed
         self.playgrounds = []
         self.multiplayer_info = multiplayer
-        self.song = pg.mixer.Sound(file)
-        self.channel = pg.mixer.Channel(1)
+        # a sound version of the song (needed in some cases)
+        self._song = pg.mixer.Sound(file)
+        self._channel = pg.mixer.Channel(1)
         self.has_panning = False
-        a = pg.mixer.Sound(self.file_path)
+        a = pg.mixer.Sound(self._file_path)
         self.length = a.get_length()
 
+<<<<<<< HEAD
     def create_intervals(self):
         """
         Returns a list of intervals (in miliseconds) that represent the duration of
@@ -83,6 +93,14 @@ class Music:
             List of playgrounds to create the notes for
         """
         
+=======
+    @abstractmethod
+    def _create_intervals(self):
+        return
+    
+    @abstractmethod
+    def _create_notes(self, playgrounds):
+>>>>>>> main
         return
 
     def play_music(self):
@@ -98,18 +116,16 @@ class Music:
         None
         """
         volume = 1   
-        
         if self.has_panning: 
-            self.channel.set_volume(1,0)
+            self._channel.set_volume(1,0)
             volume = 0.5
         pg.mixer.music.set_volume(volume)
-        pg.mixer.music.load(self.file_path)
+        pg.mixer.music.load(self._file_path)
         pg.mixer.music.play(start=0)
-        #pg.mixer.music.set_volume(0)
         
-        if self.has_panning: self.channel.play(self.song)
+        if self.has_panning: self._channel.play(self._song)
         
-
+    # the delay is how many miliseconds had elapsed before the song started playing
     def get_music_delay(self):
         """
         Returns the delay between the current time and the current position of the
@@ -123,6 +139,7 @@ class Music:
         """
         return (pg.time.get_ticks() - pg.mixer.music.get_pos())
     
+<<<<<<< HEAD
     def int_to_notes(self, key_fields : list[kf.KeyField], list : list[int], slow_notes_indexes=[], fake_notes_indexes=[], slow_notes_height=[]):
         """
         Converts a list of integers into a list of music notes. The list of integers
@@ -146,6 +163,12 @@ class Music:
         list[nt.Note]
             List of music notes
         """
+=======
+    # turns a list of integers into a list of notes, where each integer tells in which key_field the note will fall
+    # slow_notes_indexes tells the index of each note that needs to be turned into a slow note. slow_notes_height tells it's size
+    # fake_notes_indexes is similar to slow_notes_indexes
+    def _int_to_notes(self, key_fields : list[kf.KeyField], list : list[int], slow_notes_indexes=[], fake_notes_indexes=[], slow_notes_height=[]):
+>>>>>>> main
         notes_list = []
         for i in list:
             notes_list.append(nt.FastNote(key_fields[i],i))
@@ -203,9 +226,10 @@ class ItaloMusic(Music):
 
         self.playgrounds = [pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers)]#,
                             #pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers2)]
-        self.notes_list = self.create_notes(self.playgrounds)
+        self.notes_list = self._create_notes(self.playgrounds)
         self.total_notes = len(self.notes_list)
 
+<<<<<<< HEAD
     def create_intervals(self):
         """
         Creates a list of time intervals for the music in milliseconds.
@@ -215,11 +239,14 @@ class ItaloMusic(Music):
         list
             A list of time intervals in milliseconds.
         """
+=======
+    def _create_intervals(self):
+>>>>>>> main
         intervals = [8000, 8250, 8500, 8633, 8766, 9000, 9333, 9666, 10000, 12000, 12250, 
                          12500, 12633, 12766, 13000, 13333, 13666, 14000, 16000, 16250, 16500, 
                          16633, 16766, 17000, 17333, 17666, 18000, 18250, 18500, 18633, 18766, 
                          19000, 19333, 19666, 20000, 20250, 20500, 20633, 20766, 21000, 21333, 
-                         21666, 22000, 23000, 23500, 24000, 24250, 24500, 24633, 24766, 25000, 
+                         21666, 22000, 22500, 23500, 24000, 24250, 24500, 24633, 24766, 25000, 
                          25333, 25666, 26000, 26250, 26500, 26750, 26875, 27000, 27125, 27250, 
                          27375, 27500, 27750, 28000, 28250, 28500, 28750, 28875, 29250, 29375, 
                          29500, 29750, 29875, 30000, 30250, 30500, 30875, 31000, 31250, 31375, 
@@ -235,9 +262,11 @@ class ItaloMusic(Music):
                          50250, 50500, 50750, 50875, 51000, 51125, 51250, 51375, 51500, 51750, 
                          52000, 52250, 52500, 52750, 52875, 53250, 53375, 53500, 53750, 53875, 
                          54000, 54250, 54500, 54875, 55000, 55250, 55375, 55500, 55750, 56000, 
-                         56250, 56500, 56750, 56875, 57250, 57375, 57500, 57750]
+                         56250, 56500, 56750, 56875, 57250, 57375, 57500, 57750, 60000]
+        
         return intervals
 
+<<<<<<< HEAD
     def create_notes(self, playgrounds):
         """
         Generates a list of music notes based on predefined integer sequences and specified playgrounds.
@@ -255,16 +284,20 @@ class ItaloMusic(Music):
         list[nt.Note]
             A list of note objects created from the given playgrounds and predefined sequences.
         """
+=======
+    def _create_notes(self, playgrounds):
+>>>>>>> main
         ints_list = [0, 0, 1, 2, 1, 3, 3, 2, 0, 0, 0, 1, 2, 1, 3, 3, 3, 2, 0, 0, 1, 2, 1, 3, 3, 3, 0, 0, 1, 2, 1, 3, 3, 3, 
                      2, 2, 1, 2, 1, 0, 0, 0, 1, 2, 3, 0, 0, 1, 2, 1, 2, 2, 2, 0, 0, 0, 1, 0, 2, 1, 2, 1, 0, 1, 3, 2, 2, 3, 
                      2, 2, 3, 2, 0, 1, 0, 0, 3, 1, 2, 3, 2, 1, 1, 2, 2, 2, 1, 2, 1, 0, 1, 0, 0, 0, 0, 1, 0, 2, 1, 2, 1, 0, 
                      1, 3, 2, 2, 3, 2, 2, 3, 2, 0, 1, 0, 0, 3, 1, 2, 3, 2, 1, 1, 2, 2, 2, 1, 2, 1, 0, 1, 0, 0, 0, 0, 1, 0, 
                      2, 1, 2, 1, 0, 1, 3, 2, 2, 3, 2, 2, 3, 2, 0, 1, 0, 0, 3, 1, 2, 3, 2, 1, 1, 2, 2, 2, 1, 2, 1, 0, 1, 0, 
                      0, 0, 0, 1, 0, 2, 1, 2, 1, 0, 1, 3, 2, 2, 3, 2, 2, 3, 2, 0, 1, 0, 0, 3, 1, 2, 3, 2, 1, 1, 2, 2, 2, 1, 
-                     2, 1, 0, 1, 0]
+                     2, 1, 0, 1, 0, 2]
         slow_notes = [8, 17, 42, 43, 44]
         slow_heights = [24, 24, 12, 5, 5]
-        return self.int_to_notes(playgrounds[0].key_fields, ints_list, slow_notes, slow_notes_height=slow_heights)
+        fake_notes = [0,12,18,24,30,50,54,62,66,89,92,93,110,112,113,140,142,143,178,180,205,207]
+        return self._int_to_notes(playgrounds[0].key_fields, ints_list, slow_notes, fake_notes_indexes=fake_notes, slow_notes_height=slow_heights)
 
 
 class StardewMusic(Music):
@@ -304,9 +337,10 @@ class StardewMusic(Music):
         
         self.playgrounds = [pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers)]
         self.speed = speed
-        self.notes_list = self.create_notes(self.playgrounds)
+        self.notes_list = self._create_notes(self.playgrounds)
         self.total_notes = len(self.notes_list)
 
+<<<<<<< HEAD
     def create_intervals(self):
         """
         Creates a list of time intervals for the music in milliseconds.
@@ -316,6 +350,9 @@ class StardewMusic(Music):
         list
             A list of time intervals in milliseconds.
         """
+=======
+    def _create_intervals(self):
+>>>>>>> main
         intervals = [8000, 8250, 8625, 8875, 9000, 9125, 9250, 9500, 9750, 10000, 10250, 10500, 
                      10750, 10875, 11000, 11125, 11375, 11500, 11750, 12000, 12250, 12625, 12875, 
                      13000, 13125, 13250, 13500, 13750, 14000, 14250, 14500, 14750, 14875, 15125, 
@@ -358,6 +395,7 @@ class StardewMusic(Music):
                      110250, 110500, 110750, 110875]
         return intervals
     
+<<<<<<< HEAD
     def create_notes(self, playgrounds : list[pgr.Playground]):
         """
         Creates a list of music notes based on the time intervals of the song and
@@ -374,6 +412,9 @@ class StardewMusic(Music):
             List of notes created
         """
         
+=======
+    def _create_notes(self, playgrounds : list[pgr.Playground]):
+>>>>>>> main
         notes = []
         last = 0
         inc = 0
@@ -439,8 +480,9 @@ class StakesMusic(Music):
         self.playgrounds = [pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers),
                             pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers2)]
         self.speed = speed
-        self.notes_list = self.create_notes(self.playgrounds)
+        self.notes_list = self._create_notes(self.playgrounds)
         self.total_notes = len(self.notes_list)
+<<<<<<< HEAD
            
     def create_intervals(self):        
         """
@@ -451,6 +493,11 @@ class StakesMusic(Music):
         list
             A list of time intervals in milliseconds.
         """
+=======
+        
+        
+    def _create_intervals(self):        
+>>>>>>> main
         intervals = [
              (
               [8649, 8919, 9189, 9324, 9595, 10811, 11081, 11351, 11486, 11757, 12973, 13243, 13514, 13649, 13919, 15135, 15405, 15676, 15811, 
@@ -480,6 +527,7 @@ class StakesMusic(Music):
         return intervals
     
     
+<<<<<<< HEAD
     def create_notes(self,playgrounds : list[pgr.Playground]):
         """
         Creates a list of music notes based on the time intervals of the song and
@@ -491,6 +539,9 @@ class StakesMusic(Music):
             List of playgrounds to create the notes for
         """
         
+=======
+    def _create_notes(self,playgrounds : list[pgr.Playground]):
+>>>>>>> main
         notes = []
         
         columns = [0, 0, 1, 0, 1, 2, 2, 3, 2, 3, 0, 0, 1, 0, 1, 2, 2, 3, 2, 3, 0, 0, 3, 0, 3, 1, 1, 2, 1, 2, 0, 0, 
@@ -536,7 +587,7 @@ class StakesMusic(Music):
         
         for i in range(len(left_triggers)-1):
             if left_triggers[i] <= music_pos and right_triggers[i] >= music_pos:
-                self.channel.set_volume(0,1)
+                self._channel.set_volume(0,1)
         for i in range(len(right_triggers)):
             if right_triggers[i] <= music_pos and left_triggers[i+1] >= music_pos:
-                self.channel.set_volume(1,0)
+                self._channel.set_volume(1,0)
