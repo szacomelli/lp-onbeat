@@ -1,14 +1,19 @@
 import pygame as pg
 import currentround as ar, music as ms
+import devmode as dv
 from screens import *
 
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
-
-class SinglePlayerGameManager:
+class GameManager:
     def __init__(self):
         pg.init()
         pg.display.set_caption("OnBeat")
+        self.name = " "
+        self.bpm = " "
+        self.speed = " "
+        self.path = " "
+        self.moment = " "
         self.language = "English"
         self.screen_size = {
             "fullscreen":pg.FULLSCREEN, 
@@ -25,9 +30,13 @@ class SinglePlayerGameManager:
             "settings": Settings(250,60, self),
             "help": Help(350,60, self),
             "music_catalog": MusicCatalog(350,60, self),
-            "key": Key(self.keys, 250,60, self)
+            "dev": Dev(350, 60, self),
+            "dev_config": DevConfg(350,60, self),
+            "key": Key(self.keys, 250,60, self),
+            "dev_game": GameDev(self)
         }        
         self.current_screen = self.screen_map["main_menu"]
+        self.current_music_dev = ""
         self.multiplayer = False
         self.is_running = False
         self.clock = None
@@ -39,9 +48,12 @@ class SinglePlayerGameManager:
                           [ms.StardewMusic("./Tropicalia - short.mp3", keys= [self.keys], multiplayer=[True, 1]), ms.StardewMusic("./Tropicalia - short.mp3", keys= [[self.keys[4], self.keys[5], self.keys[6], self.keys[7]]], multiplayer=[True, 2])],\
                           [ms.StakesMusic("./FullScores/Retro Scores/Ove Melaa - High Stakes,Low Chances.mp3",keys = [self.keys], multiplayer=[True,1]), ms.StakesMusic("./FullScores/Retro Scores/Ove Melaa - High Stakes,Low Chances.mp3",keys = [[self.keys[4], self.keys[5], self.keys[6], self.keys[7]]], multiplayer=[True, 2])]]
         self.current_music = self.music_path[index]
-        self.current_music_multiplayer = self.music_path_multiplayer[index]
+        self.current_music_multiplayer = self.music_path_multiplayer[index]     
 
     def round_start(self):
+        self.dev_musica = self.current_music_dev
+        self.dev = dv.DevMode(self.dev_musica)
+        self.dev.round.start_round()
         if not self.multiplayer:
             self.musica = self.current_music
             self.round = [ar.CurrentRound(self.musica)]

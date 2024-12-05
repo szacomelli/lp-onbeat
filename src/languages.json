@@ -1,42 +1,56 @@
 {
     "English": {
         "main_menu": {
-            "buttons": ["Start", "Settings", "Help", "Exit"]
+            "buttons": ["Start", "Settings", "Edit mode", "?", "Exit"]
         },
         "help": {
             "button": ["Back"]
         },
         "settings": {
-            "buttons": ["language","Keys", "Delay", "Back"]
+            "buttons": ["language","Keys","Back"]
         },
         "music_catalog": {
-            "buttons": ["Continue", "Back"]
+            "buttons": ["Back"],
+            "player": ["1 player", "2 players"]
         },
         "key": {
             "title": ["Key configuration:"],
             "error_key_in_use": ["The key ", " is already in use. Choose another key."],
             "player": ["Player 1", "Player 2"],
             "button": ["Back"]
+        },
+        "dev":{
+            "buttons":["settings","Back"]
+        },
+        "dev_config": {
+            "buttons": ["Name", "Music bpm", "Music speed", "path", "when the music starts", "back", "+"]
         }
     },
     "pt/br": {
         "main_menu": {
-            "buttons": ["Iniciar", "Configurações", "Ajuda", "Sair"]
+            "buttons": ["Iniciar", "Configurações", "Modo edição", "?", "Sair"]
         },
         "help": {
             "button": ["Voltar"]
         },
         "settings": {
-            "buttons": ["Idioma", "Teclas", "Atraso", "Voltar"]
+            "buttons": ["Idioma", "Teclas", "Voltar"]
         },
         "music_catalog": {
-            "buttons": ["Continuar", "Voltar"]
+            "buttons": ["Voltar"],
+            "player": ["1 Jogador", "2 Jogadores"]
         },
         "key": {
             "title": ["Configuração das teclas:"],
             "error_key_in_use": ["A tecla "," já está em uso. Escolha outra tecla."],
             "player": ["Jogador 1", "Jogador 2"],
             "button": ["Voltar"]
+        },
+        "dev":{
+            "buttons":["Configurações","voltar"]
+        },
+        "dev_config":{
+            "buttons": ["Nome", "Música bpm", "Velocidade da música", "caminho", "Quando a música começa", "voltar", "+"]
         }
     }
 }

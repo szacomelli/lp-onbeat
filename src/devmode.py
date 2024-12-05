@@ -79,7 +79,6 @@ class DevMode:
         self.configs = self.read_configs()
         
         if editing_music: self.edit_music(music_name)
-        if self.configs.keys().isdisjoint([music_name]): self.new_music(music_name)
         
         self.music = music_name
         self.active = active
@@ -473,10 +472,6 @@ class DevMode:
             else:
                 rect = pg.rect.Rect(note.rect.x - 5*note.ratio, note.rect.y- 5*note.ratio, note.rect.width+10*note.ratio, note.rect.height+10*note.ratio)
                 pg.draw.rect(screen, (255,255,255), rect, width=round(note.ratio))
-                
-            
-            
-    
     
     def read_configs(self):
         with open('./src/config/music_test.json', 'r') as json_file:

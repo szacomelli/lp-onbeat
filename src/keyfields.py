@@ -80,25 +80,8 @@ class MakeSprite:
     def identify_sprite(cls, sprite_path: str) -> str:
         nothing_extention = os.path.splitext(sprite_path)[0]
         return nothing_extention[-1]
-<<<<<<< HEAD
-=======
-    # @classmethod
-    # def make_background(cls, screen, file_path: str, width: int, x_pos: int):
-        # if not pg.display.get_init():
-        #         raise RuntimeError("O display do Pygame precisa ser inicializado antes de carregar imagens.")
-    #     bg_image = pg.image.load(file_path).convert_alpha() 
-    #     screen_height = pg.display.get_surface().get_height()
-    #     scaled_bg = pg.transform.scale(bg_image, (width, screen_height))
-    #     # Define o rect para o fundo
-    #     rect = pg.Rect(x_pos, 0, width, screen_height)
-    #     return cls(rect, file_path)
->>>>>>> 64687c16c70cfb72d7de5c2b3ed05a19eadf9af9
     
     def draw(self, display):
 
         scaled_sprite = pg.transform.scale(self.sprite, self.rect.size)
-<<<<<<< HEAD
         display.blit(scaled_sprite, self.rect.topleft)
-=======
-        display.blit(scaled_sprite, self.rect.topleft)
->>>>>>> 64687c16c70cfb72d7de5c2b3ed05a19eadf9af9
