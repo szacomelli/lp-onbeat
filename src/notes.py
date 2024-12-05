@@ -436,7 +436,7 @@ class FakeNote(Note):
         -----
         This method checks if the note has been destructed and if not draws the sprite on the display surface.
         """
-        if self.updating == True and self.destructed == False:
+        if self.updating:
             # pg.draw.rect(display, self.color, self.rect)
             # Adding sprite drawing
             self.sprite.draw(display)
@@ -461,14 +461,17 @@ class FakeNote(Note):
         screen and marks it as destructed if so. This method should be called once
         per frame while the note is being updated.
         """
-        if self.updating:
+
+
+    def update(self,speed, starting_pos, label_duration):
             self.rect.centerx = self.field.rect.centerx
             self.rect.width, self.rect.height = self._calculate_size()
             
 
             self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed#+= self.speed
             if self.field.rect.bottom + 10 < self.rect.top:
-                self.destructed = True               
+                self.destructed = True
+                self.updating = False                
                 
 
     def calculate_points(self):

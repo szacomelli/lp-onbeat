@@ -268,8 +268,10 @@ class MusicCatalog(Screen):
                                              self.button_width, self.button_height, self.name_buttons_player, self.fonte_subtitle)
         self.dict_buttons[self.name_player[1]] = Button(SCREEN_WIDTH//2 - self.button_width//2, (SCREEN_HEIGHT//9) + (self.button_height + 10) + 120,\
                                              self.button_width, self.button_height, self.name_buttons_player[0], self.fonte_subtitle)
-        self.dict_buttons["back"] = Button(SCREEN_WIDTH//2 - self.button_width//2, (SCREEN_HEIGHT//9) + 2*(self.button_height + 10) + 120,\
+        self.dict_buttons["continue"] = Button(SCREEN_WIDTH//2 - self.button_width//2, (SCREEN_HEIGHT//9) + 2*(self.button_height + 10) + 120,\
                                              self.button_width, self.button_height, self.name_buttons[0], self.fonte_title)
+        self.dict_buttons["back"] = Button(SCREEN_WIDTH//2 - self.button_width//2, (SCREEN_HEIGHT//9) + 3*(self.button_height + 10) + 120,\
+                                             self.button_width, self.button_height, self.name_buttons[1], self.fonte_title)
         
         self.dict_buttons["right1"] = Button(SCREEN_WIDTH//2 - self.button_width//2 + self.button_width +2, (SCREEN_HEIGHT//9) + 120, 25,\
                                              self.button_height, " ", self.fonte_subsubtitle, color_hover=(0, 0, 255, 0), texture_path = "./assets/game_screen/right_button.png" )
@@ -292,8 +294,10 @@ class MusicCatalog(Screen):
         self.dict_buttons[self.name_player[0]].rect.y = (self.height//9) + (self.button_height + 10) + 120
         self.dict_buttons[self.name_player[1]].rect.x = self.width//2 - self.button_width//2
         self.dict_buttons[self.name_player[1]].rect.y = (self.height//9) + (self.button_height + 10) + 120
+        self.dict_buttons["continue"].rect.x = self.width//2 - self.button_width//2
+        self.dict_buttons["continue"].rect.y = (self.height//9) + 2*(self.button_height + 10) + 120
         self.dict_buttons["back"].rect.x = self.width//2 - self.button_width//2
-        self.dict_buttons["back"].rect.y = (self.height//9) + 2*(self.button_height + 10) + 120
+        self.dict_buttons["back"].rect.y = (self.height//9) + 3*(self.button_height + 10) + 120
         self.dict_buttons["right1"].rect.x = self.width//2 - self.button_width//2 + self.button_width +2
         self.dict_buttons["right1"].rect.y = (self.height//9) + 120
         self.dict_buttons["right2"].rect.x = self.width//2 - self.button_width//2 + self.button_width +2
@@ -305,12 +309,12 @@ class MusicCatalog(Screen):
 
     def draw(self, screen):
         self.resize(screen)
-        screen.fill((0,0,0))
         screen.blit(self.imagem, (0, 0))
         screen.blit(self.loading_message, (self.width//2 - self.loading_message.get_width()//2, self.height//9 + 10))
-        self.dict_buttons[self.name_player[self.index_player]].draw(screen)
+        self.dict_buttons["continue"].draw(screen)
         self.dict_buttons["back"].draw(screen)
         self.dict_buttons_music[self.manager.music_names[self.index]].draw(screen)
+        self.dict_buttons[self.name_player[self.index_player]].draw(screen)
         self.dict_buttons["right1"].draw(screen)
         self.dict_buttons["right2"].draw(screen)
         self.dict_buttons["left1"].draw(screen)
@@ -328,7 +332,12 @@ class MusicCatalog(Screen):
         self.name_buttons_player = self.translate("music_catalog.player", self.manager.language)
         self.dict_buttons[self.name_player[0]].text = self.name_buttons_player[0]
         self.dict_buttons[self.name_player[1]].text = self.name_buttons_player[1]
-        self.dict_buttons["back"].text = self.name_buttons[0]
+        self.dict_buttons["continue"].text = self.name_buttons[0]
+        self.dict_buttons["back"].text = self.name_buttons[1]
+        if self.index_player == 0:
+            self.manager.multiplayer=False
+        else:
+            self.manager.multiplayer=True
 
     def on_event(self, event:pg.event.Event,screen):
         if self.dict_buttons["right1"].is_clicked(event):
@@ -354,14 +363,8 @@ class MusicCatalog(Screen):
                     self.index_player = 0
             else:
                 self.index_player += 1 
-        if self.dict_buttons[self.name_player[0]].is_clicked(event):
-            self.manager.multiplayer = False
-            self.manager.define_music(self.index)
-            self.manager.round_start()
-            self.start_game(1)
 
-        elif self.dict_buttons[self.name_player[1]].is_clicked(event):
-            self.manager.multiplayer = True
+        if self.dict_buttons["continue"].is_clicked(event):
             self.manager.define_music(self.index)
             self.manager.round_start()
             self.start_game(1)
@@ -470,6 +473,7 @@ class Game(Screen):
         self.needs_resize = True
         print(pg.mixer.get_init())
         self.resize = True
+        self.pause = False
 
     def resize_background(self, screen):
         width, height = screen.get_size()
@@ -503,6 +507,17 @@ class Game(Screen):
             round.on_event(event)
         if event.type == pg.VIDEORESIZE:
             self.resize = True
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_ESCAPE:
+               pg.mixer.music.pause()
+               self.manager.change_state("main_menu")
+            if event.key == pg.K_p:
+                if self.pause:
+                    pg.mixer.music.unpause()  
+                    self.pause = False              
+                else:
+                    pg.mixer.music.pause()
+                    self.pause = True
 class Dev(Screen):
     def __init__(self, button_width:int, button_height:int, manager):
         super().__init__(manager)
@@ -747,7 +762,6 @@ class GameDev(Screen):
         pg.display.flip()
 
     def update(self, screen):
-        #if pg.mixer.music.get_pos() > 12000: pg.mixer.music.pause()
         self.manager.dev.round.play_notes()
         self.keys = pg.key.get_pressed()
         self.undone = False
@@ -757,3 +771,9 @@ class GameDev(Screen):
         self.manager.dev.on_event(event)
         if event.type == pg.VIDEORESIZE:
             self.resize = True
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_ESCAPE:
+               pg.mixer.music.pause()
+               self.manager.change_state("main_menu")
+
+

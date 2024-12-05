@@ -6,6 +6,53 @@ import devmode
 import os
 
 class CurrentRound:
+
+    def __init__(self,  music : music.Music, screen_size=[480,640], switch_key=pg.K_SPACE, dev=False):
+        # basic atributtes
+        """
+        Creates a new instance of CurrentRound, which will be responsible for managing one round of the game.
+
+        Parameters:
+        music (music.Music): The music to be played in this round.
+        screen_size (list): A list containing width and height of the screen.
+        switch_key (int): The key that should be used to switch between playgrounds.
+        dev (bool): A boolean indicating if the dev mode should be enabled.
+
+        Attributes:
+        _screen_size (list): A list containing width and height of the screen.
+        active_playground (int): An integer indicating which playground is currently active.
+        music_start_pos (int): An integer indicating the current position in the music.
+        __dev_active (bool): A boolean indicating if the dev mode should be enabled.
+        music (music.Music): The music to be played in this round.
+        speed (int): An integer indicating the speed of the notes.
+        notes_to_play (list): A list containing all the notes to be played in this round.
+        notes_interval (list): A list containing the time intervals between each note.
+        start_index (int): An integer indicating which note should be the first one to be played.
+        stop_index (int): An integer indicating which note should be the last one to be played.
+        max_index (int): An integer indicating the last note to be played.
+        font (pg.font.Font): A font object to be used for rendering the text.
+        total_points (int): The total points earned in this round.
+        combo (int): The current combo.
+        _combo_mult_scores (list): A list containing the score multipliers for each combo level.
+        _remaining_misses (int): An integer indicating how many misses are left before the game is over.
+        game_over (bool): A boolean indicating if the game is over.
+        text_x (int): The x position of the text.
+        text_y (list): A list containing the y positions of the text.
+        text_font (int): An integer indicating the font size of the text.
+        combo_txt (pg.Surface): A surface containing the rendered text of the combo.
+        score_txt (pg.Surface): A surface containing the rendered text of the score.
+        text_ratio (list): A list containing the width and height ratio of the text.
+        switch_key (int): The key that should be used to switch between playgrounds.
+
+        """
+        if not isinstance(screen_size, list) or len(screen_size) != 2 or not all(isinstance(dim, int) for dim in screen_size):
+            raise ValueError("The 'screen_size' parameter must be a list with two integers: [width, height].")
+        if not isinstance(switch_key, int):
+            raise TypeError("The 'switch_key' parameter must be an integer representing a pygame key.")
+        if not isinstance(dev, bool):
+            raise TypeError("The 'dev' parameter must be a boolean.")
+        
+
     """
     The custom music created by the player
     
@@ -82,6 +129,7 @@ class CurrentRound:
     """
     def __init__(self,  music : music.Music, screen_size=[480,640], switch_key=pg.K_SPACE, dev=False):
         # basic atributtes
+
         self._screen_size = screen_size
         self.active_playground = 0
         self.music_start_pos = 0
@@ -219,15 +267,17 @@ class CurrentRound:
         combo_rect = self._combo_txt.get_rect(topleft=(self.text_x, self.text_y[0]))
         score_rect = self._score_txt.get_rect(topleft=(self.text_x, self.text_y[1]))
         unified_rect = combo_rect.union(score_rect).inflate(25, 25)
-        pg.draw.rect(screen, (150, 80, 180), unified_rect)
+        
             
-        screen.blit(self._combo_txt, (self.text_x, self.text_y[0]))
-        screen.blit(self._score_txt, (self.text_x, self.text_y[1]))
+        
         screen.blit(self.messages[self.i], (self.x_pos, self.y_pos))
         
         for playground in self.music.playgrounds:
             playground.make_border(screen)
         
+        pg.draw.rect(screen, (150, 80, 180), unified_rect)
+        screen.blit(self._combo_txt, (self.text_x, self.text_y[0]))
+        screen.blit(self._score_txt, (self.text_x, self.text_y[1]))
 
     def on_key_press(self, keys, notes_list, dev = None):        
         """

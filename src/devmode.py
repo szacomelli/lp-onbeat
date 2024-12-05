@@ -65,7 +65,7 @@ class VoidMusic(music.Music):
         
         self.paused = False
         self.label_duration = 60000/(4*bpm)
-        self.file_path = file
+        self._file_path = file
         self.notes_list = []
         self.labels = []
         self._columns = []
@@ -74,13 +74,13 @@ class VoidMusic(music.Music):
         self.total_notes = 0
         self.speed = speed
         self.playgrounds = playgrounds
-        self.song = pg.mixer.Sound(file)
-        self.channel = pg.mixer.Channel(1)
+        self._song = pg.mixer.Sound(file)
+        self._channel = pg.mixer.Channel(1)
         self.has_panning = False
-        a = pg.mixer.Sound(self.file_path)
+        a = pg.mixer.Sound(self._file_path)
         self.length = a.get_length()
         
-    def _create_intervals(self):
+    def create_intervals(self):
         """
         Returns a list of intervals (in miliseconds) that represent the duration of
         each note in the music. The intervals are calculated based on the BPM of
@@ -88,7 +88,7 @@ class VoidMusic(music.Music):
         """
         return []
     
-    def _create_notes(self, playgrounds):
+    def create_notes(self, playgrounds):
         """
         Generates a list of notes for the music based on the provided playgrounds.
 
@@ -162,11 +162,11 @@ class PlayerMusic(music.Music):
         self._slow_heights = slow_heights    
         self.playgrounds = playgrounds
         self.multiplayer_info = [False, 1]
-        self.file_path = file
+        self._file_path = file
         
-        self.notes_list = self._create_notes(self.playgrounds)
+        self.notes_list = self.create_notes(self.playgrounds)
         self._labels = labels
-        self.time_intervals = self._create_intervals()
+        self.time_intervals = self.create_intervals()
         
         self.total_notes = len(self.notes_list)
         self.speed = speed
@@ -175,11 +175,11 @@ class PlayerMusic(music.Music):
         self._song = pg.mixer.Sound(file)
         self.channel = pg.mixer.Channel(1)
         self.has_panning = False
-        a = pg.mixer.Sound(self.file_path)
+        a = pg.mixer.Sound(self._file_path)
         self.length = a.get_length()
         
         
-    def _create_intervals(self):
+    def create_intervals(self):
         """
         Creates a list of intervals in miliseconds, that represent the duration of
         each note in the music. The intervals are calculated based on the BPM of
@@ -192,7 +192,7 @@ class PlayerMusic(music.Music):
             intervals.append(i*self.label_duration + self.file_delay) 
         return intervals
     
-    def _create_notes(self, playgrounds : list[pgr.Playground]):
+    def create_notes(self, playgrounds : list[pgr.Playground]):
         """
         Generates a list of notes for the music based on the provided playgrounds.
 
@@ -286,6 +286,7 @@ class DevMode:
     def _edit_music(self, name):
         """
         Allows the user to edit an existing music, changing its file path, speed, BPM and file delay.
+        Is a deprecated method, for cli.
         
         Parameters
         ----------
@@ -302,6 +303,7 @@ class DevMode:
     def _new_music(self, name):
         """
         Creates a new music and adds it to the music config file.
+        Is a deprecated method, for cli.
         
         Parameters
         ----------
@@ -890,6 +892,7 @@ class DevMode:
         """
         self.dev_shorts(event, self.round.notes_to_play, self.round.max_index, self.round.stop_index, self.round.music_start_pos)        
         self.round.on_event(event)   
+        
     def draw(self, screen : pg.Surface, music_start_pos, font_size):
         """
         Draws the current label and "Recording" status on the screen.
@@ -921,7 +924,7 @@ class DevMode:
         if self.active_music == self.music_list[0]:
             text =  font.render("Recording", False, (220, 0, 0))
             screen.blit(text, (screen.get_width()-text.get_width() - 5, 0))    
-    
+       
     def create_music(self, music_start_pos, column):
         """
         Records a music column and label based on the current playback position.

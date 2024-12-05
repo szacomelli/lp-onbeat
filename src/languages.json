@@ -10,7 +10,7 @@
             "buttons": ["language","Keys","Back"]
         },
         "music_catalog": {
-            "buttons": ["Back"],
+            "buttons": ["continue","Back"],
             "player": ["1 player", "2 players"]
         },
         "key": {
@@ -37,7 +37,7 @@
             "buttons": ["Idioma", "Teclas", "Voltar"]
         },
         "music_catalog": {
-            "buttons": ["Voltar"],
+            "buttons": ["continue", "Voltar"],
             "player": ["1 Jogador", "2 Jogadores"]
         },
         "key": {
