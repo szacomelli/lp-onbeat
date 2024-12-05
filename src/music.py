@@ -3,7 +3,9 @@ import math
 import notes as nt
 import keyfields as kf
 import playground as pgr
+from abc import ABC, abstractmethod
 
+# these classes keep the information to build the original songs of the game
 class Music:
     def __init__(self, file, speed=0, bpm=120, multiplayer=[False,1]):
         """
@@ -50,20 +52,28 @@ class Music:
             Length of the music in miliseconds
         """
         self.bpm = bpm
+        # label duration: the minium time duration of a note (and minimum interval of time between notes)
+        # (in miliseconds)
         self.label_duration = 60000/(4*self.bpm)
-        self.file_path = file
+        # path of the .mp3 or .ogg
+        self._file_path = file
+        # interval of a note = the moment the note plays in the song (in miliseconds)
         self.time_intervals = self.create_intervals()
+        # a list with all the notes (objects) that will be played
         self.notes_list = []
         self.total_notes = len(self.notes_list)
+        # how fast the notes will fall
         self.speed = speed
         self.playgrounds = []
         self.multiplayer_info = multiplayer
-        self.song = pg.mixer.Sound(file)
-        self.channel = pg.mixer.Channel(1)
+        # a sound version of the song (needed in some cases)
+        self._song = pg.mixer.Sound(file)
+        self._channel = pg.mixer.Channel(1)
         self.has_panning = False
-        a = pg.mixer.Sound(self.file_path)
+        a = pg.mixer.Sound(self._file_path)
         self.length = a.get_length()
 
+    @abstractmethod
     def create_intervals(self):
         """
         Returns a list of intervals (in miliseconds) that represent the duration of
@@ -72,6 +82,7 @@ class Music:
         """
         return
     
+    @abstractmethod
     def create_notes(self, playgrounds):
         """
         Creates a list of music notes based on the time intervals of the song and
@@ -98,18 +109,16 @@ class Music:
         None
         """
         volume = 1   
-        
         if self.has_panning: 
-            self.channel.set_volume(1,0)
+            self._channel.set_volume(1,0)
             volume = 0.5
         pg.mixer.music.set_volume(volume)
-        pg.mixer.music.load(self.file_path)
+        pg.mixer.music.load(self._file_path)
         pg.mixer.music.play(start=0)
-        #pg.mixer.music.set_volume(0)
         
-        if self.has_panning: self.channel.play(self.song)
+        if self.has_panning: self._channel.play(self._song)
         
-
+    # the delay is how many miliseconds had elapsed before the song started playing
     def get_music_delay(self):
         """
         Returns the delay between the current time and the current position of the
@@ -219,7 +228,7 @@ class ItaloMusic(Music):
                          12500, 12633, 12766, 13000, 13333, 13666, 14000, 16000, 16250, 16500, 
                          16633, 16766, 17000, 17333, 17666, 18000, 18250, 18500, 18633, 18766, 
                          19000, 19333, 19666, 20000, 20250, 20500, 20633, 20766, 21000, 21333, 
-                         21666, 22000, 23000, 23500, 24000, 24250, 24500, 24633, 24766, 25000, 
+                         21666, 22000, 22500, 23500, 24000, 24250, 24500, 24633, 24766, 25000, 
                          25333, 25666, 26000, 26250, 26500, 26750, 26875, 27000, 27125, 27250, 
                          27375, 27500, 27750, 28000, 28250, 28500, 28750, 28875, 29250, 29375, 
                          29500, 29750, 29875, 30000, 30250, 30500, 30875, 31000, 31250, 31375, 
@@ -235,7 +244,8 @@ class ItaloMusic(Music):
                          50250, 50500, 50750, 50875, 51000, 51125, 51250, 51375, 51500, 51750, 
                          52000, 52250, 52500, 52750, 52875, 53250, 53375, 53500, 53750, 53875, 
                          54000, 54250, 54500, 54875, 55000, 55250, 55375, 55500, 55750, 56000, 
-                         56250, 56500, 56750, 56875, 57250, 57375, 57500, 57750]
+                         56250, 56500, 56750, 56875, 57250, 57375, 57500, 57750, 60000]
+        
         return intervals
 
     def create_notes(self, playgrounds):
@@ -261,10 +271,11 @@ class ItaloMusic(Music):
                      1, 3, 2, 2, 3, 2, 2, 3, 2, 0, 1, 0, 0, 3, 1, 2, 3, 2, 1, 1, 2, 2, 2, 1, 2, 1, 0, 1, 0, 0, 0, 0, 1, 0, 
                      2, 1, 2, 1, 0, 1, 3, 2, 2, 3, 2, 2, 3, 2, 0, 1, 0, 0, 3, 1, 2, 3, 2, 1, 1, 2, 2, 2, 1, 2, 1, 0, 1, 0, 
                      0, 0, 0, 1, 0, 2, 1, 2, 1, 0, 1, 3, 2, 2, 3, 2, 2, 3, 2, 0, 1, 0, 0, 3, 1, 2, 3, 2, 1, 1, 2, 2, 2, 1, 
-                     2, 1, 0, 1, 0]
+                     2, 1, 0, 1, 0, 2]
         slow_notes = [8, 17, 42, 43, 44]
         slow_heights = [24, 24, 12, 5, 5]
-        return self.int_to_notes(playgrounds[0].key_fields, ints_list, slow_notes, slow_notes_height=slow_heights)
+        fake_notes = [0,12,18,24,30,50,54,62,66,89,92,93,110,112,113,140,142,143,178,180,205,207]
+        return self.int_to_notes(playgrounds[0].key_fields, ints_list, slow_notes, fake_notes_indexes=fake_notes, slow_notes_height=slow_heights)
 
 
 class StardewMusic(Music):
@@ -536,7 +547,7 @@ class StakesMusic(Music):
         
         for i in range(len(left_triggers)-1):
             if left_triggers[i] <= music_pos and right_triggers[i] >= music_pos:
-                self.channel.set_volume(0,1)
+                self._channel.set_volume(0,1)
         for i in range(len(right_triggers)):
             if right_triggers[i] <= music_pos and left_triggers[i+1] >= music_pos:
-                self.channel.set_volume(1,0)
+                self._channel.set_volume(1,0)

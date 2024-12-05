@@ -5,7 +5,6 @@ import playground as pgr
 import notes as nt
 import currentround as cr
 
-
 pg_numbers = [1,1]
 pg.init()
 screen = pg.display.set_mode((800, 600))
@@ -922,6 +921,7 @@ class DevMode:
         if self.active_music == self.music_list[0]:
             text =  font.render("Recording", False, (220, 0, 0))
             screen.blit(text, (screen.get_width()-text.get_width() - 5, 0))    
+    
     def create_music(self, music_start_pos, column):
         """
         Records a music column and label based on the current playback position.

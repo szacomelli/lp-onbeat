@@ -152,7 +152,7 @@ class FastNote(Note):
         is updated correctly.
         """
         self.rect.centerx = self.field.rect.centerx
-        self.rect.width, self.rect.height = self.calculate_size()
+        self.rect.width, self.rect.height = self._calculate_size()
         
 
         self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed#+= self.speed
@@ -181,7 +181,7 @@ class FastNote(Note):
         elif bias <= self.point_intervals[0][2] and bias >= -self.point_intervals[0][2]: return self.point_intervals[1][2]
         else: return 1
 
-    def calculate_size(self):
+    def _calculate_size(self):
         """
         Calculates the size of the note based on the size of its associated key field.
         
@@ -319,7 +319,7 @@ class SlowNote(Note):
         self.height_ratio = self.rect.height/self.rect.width
         self.speed = speed
         self.rect.centerx = self.field.rect.centerx
-        self.rect.width, self.rect.height = self.calculate_size()
+        self.rect.width, self.rect.height = self._calculate_size()
         self.rect.bottom = self.field.rect.bottom- (self.calculate_time_gap(starting_pos))/speed 
 
         # sprites
@@ -362,7 +362,7 @@ class SlowNote(Note):
         self.y_holding_start = 0
         self.y_holding_end = 0
 
-    def calculate_size(self):
+    def _calculate_size(self):
         """
         Calculates the size of the SlowNote object based on the field's width and the height ratio.
 
@@ -436,7 +436,7 @@ class FakeNote(Note):
         -----
         This method checks if the note has been destructed and if not draws the sprite on the display surface.
         """
-        if self.destructed == False:
+        if self.updating == True and self.destructed == False:
             # pg.draw.rect(display, self.color, self.rect)
             # Adding sprite drawing
             self.sprite.draw(display)
@@ -463,15 +463,14 @@ class FakeNote(Note):
         """
         if self.updating:
             self.rect.centerx = self.field.rect.centerx
-            self.rect.width, self.rect.height = self.calculate_size()
+            self.rect.width, self.rect.height = self._calculate_size()
+            
 
-            self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed
-
+            self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed#+= self.speed
             if self.field.rect.bottom + 10 < self.rect.top:
-                self.destructed = True
-                #self.field.points += 1
-                self.updating = False
+                self.destructed = True               
                 
+
     def calculate_points(self):
         """
         Calculates the points earned by the user for this note.
@@ -484,7 +483,7 @@ class FakeNote(Note):
         
         return -1
     
-    def calculate_size(self):
+    def _calculate_size(self):
         """
         Calculates the size of the FakeNote based on the dimensions of the associated key field.
 
