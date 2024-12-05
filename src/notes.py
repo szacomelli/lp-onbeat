@@ -142,21 +142,18 @@ class FakeNote(Note):
         
 
     def draw_rect(self, display):
-        if self.destructed == False:
+        if self.updating == True:
             pg.draw.rect(display, self.color, self.rect)
 
     def update(self,speed, starting_pos, label_duration):
-        if self.updating:
             self.rect.centerx = self.field.rect.centerx
             self.rect.width, self.rect.height = self._calculate_size()
+            
 
-            self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed
-
+            self.rect.y = self.field.rect.y - (self.calculate_time_gap(starting_pos))/speed#+= self.speed
             if self.field.rect.bottom + 10 < self.rect.top:
                 self.destructed = True
-                #self.field.points += 1
-                self.updating = False
-                
+                self.updating = False                
                 
 
     def calculate_points(self):
