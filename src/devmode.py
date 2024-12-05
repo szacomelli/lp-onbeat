@@ -338,7 +338,7 @@ class DevMode:
         self.configs[name]["slow_durations"] = []
         self.__write_configs(self.configs)
     
-    def dev_shorts(self, event, notes_to_play, max_index, stop_index, music_start_pos):
+    def dev_shorts(self, event, notes_to_play, max_index, stop_index, music_start_pos, display):
         
         """
         Handles developer shortcut keys for controlling music playback and editing notes.
@@ -412,7 +412,7 @@ class DevMode:
                 self.active_music.play_music()
             
             if event.key == self.developer_keys[4]:  
-                self.__recording_mode() 
+                self.__recording_mode(display) 
                 #change_music()
                 
             if event.key == self.developer_keys[5]:  
@@ -492,18 +492,19 @@ class DevMode:
         speed = current_note.speed
         note_interval = current_note.time_interval
         
+        
         if isinstance(current_note, nt.FastNote): 
-            notes[self.index_selected] = nt.SlowNote(current_note.field)
+            notes[self.index_selected] = nt.SlowNote(current_note.field, 1)
             self.music_info["slow_notes"].append(self.index_selected)
             notes[self.index_selected].height_ratio = 1
             self.music_info["slow_durations"].append(notes[self.index_selected].height_ratio)
         elif isinstance(current_note, nt.SlowNote): 
-            notes[self.index_selected] = nt.FakeNote(current_note.field)
+            notes[self.index_selected] = nt.FakeNote(current_note.field, 1)
             self.music_info["slow_durations"].pop(self.music_info["slow_notes"].index(self.index_selected))
             self.music_info["slow_notes"].remove(self.index_selected)
             self.music_info["fake_notes"].append(self.index_selected)
         elif isinstance(current_note, nt.FakeNote): 
-            notes[self.index_selected] = nt.FastNote(current_note.field)
+            notes[self.index_selected] = nt.FastNote(current_note.field, 1)
             self.music_info["fake_notes"].remove(self.index_selected)
 
         notes[idx].speed = speed
@@ -825,7 +826,7 @@ class DevMode:
         with open('./src/config/music_test.json', 'w') as json_file:
             json.dump(music_data, json_file)
             
-    def __recording_mode(self):
+    def __recording_mode(self, display):
         """
         Toggles the recording mode of the music editor.
 
@@ -868,12 +869,12 @@ class DevMode:
                         
         self.active_music = self.music_list[self.active_music_idx]
         speed, txt_x, txt_y, font, txt_ratio = self.round.speed, self.round.text_x, self.round.text_y, self.round.text_font, self.round.text_ratio
-        self.round = cr.CurrentRound(self.active_music, dev=True)
+        self.round = cr.CurrentRound(self.active_music, dev=True, screen_size=display)
         self.round.speed, self.round.text_x, self.round.text_y, self.round.text_font, self.round.text_ratio = speed, txt_x, txt_y, font, txt_ratio
         self.round.start_round()
         return
         
-    def on_event(self, event):
+    def on_event(self, event, display):
         """
         Handles an event by invoking developer shortcuts and updating the round state.
 
@@ -890,7 +891,7 @@ class DevMode:
         -------
         None
         """
-        self.dev_shorts(event, self.round.notes_to_play, self.round.max_index, self.round.stop_index, self.round.music_start_pos)        
+        self.dev_shorts(event, self.round.notes_to_play, self.round.max_index, self.round.stop_index, self.round.music_start_pos, display)        
         self.round.on_event(event)   
         
     def draw(self, screen : pg.Surface, music_start_pos, font_size):

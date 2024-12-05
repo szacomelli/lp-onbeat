@@ -767,8 +767,10 @@ class GameDev(Screen):
         self.undone = False
         self.manager.dev.round.update(self.keys, screen, self.resize, self.manager.dev)
 
+
+
     def on_event(self,event, screen):
-        self.manager.dev.on_event(event)
+        self.manager.dev.on_event(event,[screen.get_height(), screen.get_width()])
         if event.type == pg.VIDEORESIZE:
             self.resize = True
         if event.type == pg.KEYDOWN:
