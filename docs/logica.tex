@@ -1,0 +1,34 @@
+\section{Lógica de jogo}
+    \subsection{Criação de notas e estruturas básicas} \label{chap:2}
+
+    Primeiramente foi criada a estrutura de notas e keyfields. Um keyfield é um dos quadrados localizados no interior da tela durante uma música, cada qual com uma tecla específica associada a ele. Sempre que uma nota passa por um keyfield, a tecla deveria ser pressionada pelo jogador, o que verificaria colisão keyfield-nota e adicionaria pontos e combo às métricas atuais.
+
+    Já uma nota é uma classe abstrata, com três classes filhas:
+    \begin{enumerate}
+        \item FastNote: uma nota comum no estilo de Guitar Hero, onde apenas pressioná-la uma vez adiciona pontos e a faz desaparecer;
+        \item SlowNote: uma nota longa, que ao entrar em colisão com as keyfields, exige que a tecla relativa a ele deva ser segurada por quase todo o tempo de colisão. Se essa condição for cumprida, pontos e combo serão adicionados;
+        \item FakeNote: uma nota interessante, que ao ser pressionada diminui os pontos em 1 e zera o combo atual. 
+
+    Além disso, a classe Playgrounds cria uma "caixa" contendo esses itens e os redimensiona conforme necessário, nos redimensionamentos de tela.
+    
+    \end{enumerate}
+    
+    \subsection{Músicas}
+
+    A próxima parte feita foram as classes das músicas. Existe uma classe abstrata e cada uma de suas filhas é uma classe que guarda uma música em específico. Temos atualmente três músicas: ItaloMusic, StardewMusic e StakesMusic.
+
+    StakesMusic tem uma mecânica nova: em vez de controlar um campo de keyfields, o jogador controla dois. Porém, apenas um pode ser controlado por vez, sendo necessário apertar a barra de espaço para trocar entre eles. A música dará uma dica de quando ele deve fazer isso, fazendo com que o som geral do jogo toque mais de um lado do fone de ouvido ou do outro, dependendo do lado em que as notas cairão.
+
+    As músicas foram uma das partes que mais criaram desafio na implementação da lógica do jogo, pois, para criá-las, é necessário guardar, em uma lista, os momentos da música em que as notas são tocadas, em milissegundos. Isso faz com que seja necessária uma análise mais aprofundada das músicas, que por sua vez requer um pouco de teoria musical para ser feita.
+
+    \subsection{Modo multiplayer}
+
+    O modo multiplayer foi um pequeno extra adicionado ao jogo. Apesar de parecer difícil, é apenas uma reimplementação da mecânica de StakesMusic que aumenta a quantidade de campos de keyfields, porém com uma CurrentRound a mais (para o segundo jogador).
+
+    \subsection{Modo de edição}
+
+    O modo de edição foi feito como uma maneira de permitir o jogador a criar as próprias músicas. Porém, ele adiciona muitas coisas que não foram pensadas para existirem originalmente no jogo, como a capacidade de pausar a música, retroceder, avançar, selecionar e mudar o posicionamento de notas, mudar seus tipos e gravar músicas do zero.
+
+    A maioria dos desafios eram apenas relacionados ao código em si, sem muitas características específicas. Era uma questão de integrar um código feito para uma finalidade com outro que visa utilizá-lo de várias maneiras diferentes.
+    
+    %\end{definition}

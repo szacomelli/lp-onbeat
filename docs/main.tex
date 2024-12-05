@@ -1,0 +1,61 @@
+\documentclass{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[portuguese]{babel}
+
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{indentfirst}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\newcommand{\sref}[1]{\textsuperscript{[\ref{#1}]}}
+
+\newtheorem{definition}{Definição}
+\newtheorem{theorem}{Teorema}
+
+\setlocalecaption{portuguese}{contents}{Sumário}
+
+\lstset{
+    language=plaintext,
+    basicstyle=\ttfamily\scriptsize,
+    keywordstyle=\bfseries\color{blue},
+    stringstyle=\color{red},
+    commentstyle=\color{gray},
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    tabsize=4,
+    showstringspaces=false,
+    breaklines=true,
+    inputencoding=utf8,
+    extendedchars=true
+}
+
+\title{Relatório da A2 de Linguagens de Programação}
+\author{Leonardo Verissimo, Stephany e Sílvio Estêvão Seibert Zacomelli}
+\date{Dezembro 2024}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\pagebreak
+
+\input{introducao.tex}
+    
+\input{tarefas.tex}
+
+\input{logica.tex}
+
+\input{}
+
+\end{document}
