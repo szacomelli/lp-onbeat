@@ -9,7 +9,7 @@ class Note(ABC):
         self.destructed = False
         self.field = field
         self.updating = True
-        self._point_intervals = intervals
+        self.point_intervals = intervals
         self.points_args = []
         self.time_interval = 0
         self.ratio = 1
@@ -65,9 +65,9 @@ class FastNote(Note):
 
     def calculate_points(self):
         bias = self.field.rect.y - self.rect.y
-        if bias <= self._point_intervals[0][0] and bias >= -self._point_intervals[0][0]: return self._point_intervals[1][0]
-        elif bias <= self._point_intervals[0][1] and bias >= -self._point_intervals[0][1]: return self._point_intervals[1][1]
-        elif bias <= self._point_intervals[0][2] and bias >= -self._point_intervals[0][2]: return self._point_intervals[1][2]
+        if bias <= self.point_intervals[0][0] and bias >= -self.point_intervals[0][0]: return self.point_intervals[1][0]
+        elif bias <= self.point_intervals[0][1] and bias >= -self.point_intervals[0][1]: return self.point_intervals[1][1]
+        elif bias <= self.point_intervals[0][2] and bias >= -self.point_intervals[0][2]: return self.point_intervals[1][2]
         else: return 1
 
     def _calculate_size(self):

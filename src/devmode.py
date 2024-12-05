@@ -11,12 +11,48 @@ playgrounds = [pgr.Playground(50,640,480,keys=[pg.K_d,pg.K_f,pg.K_j,pg.K_k], bla
 
 
 class VoidMusic(music.Music):
+    """
+    A music that doesn't have notes. It's used to record new notes to the music.
+    
+    Attributes
+    ----------
+    self.paused : bool
+        If the music is paused
+    self.label_duration : int
+        How many milisecons a note lasts
+    self._file_path : str
+        Path to the music file
+    self.notes_list : list
+        List of music notes
+    self.labels : list
+        The labels of each note
+    self._columns : list
+        The key field column where each note plays
+    self.time_intervals : list
+        List of intervals of each note
+    self.multiplayer_info : list
+        A list containing the multiplayer information 
+    self.total_notes : int
+        Number of total notes of the music
+    self.speed : int
+        The speed of the music
+    self.playgrounds : list
+        A list containing all the playgrounds the music utilizes
+    self._song : pygame.mixer.Sound
+        The music initialized as a Sound
+    self._channel pg.mixer.Channel
+        A pygame channel for the sound version of the song
+    self.has_panning : bool
+        A boolean representing if the song has panning
+    self.length : int
+        Length of the music in miliseconds
+    """
     def __init__(self, file, speed, bpm):
         self.paused = False
         self.label_duration = 60000/(4*bpm)
         self._file_path = file
         self.notes_list = []
-        self._labels = []
+        self.labels = []
         self._columns = []
         self.time_intervals = []
         self.multiplayer_info = [False, 1]
@@ -28,8 +64,58 @@ class VoidMusic(music.Music):
         self.has_panning = False
         a = pg.mixer.Sound(self._file_path)
         self.length = a.get_length()
+        
+    def _create_intervals(self):
+        return []
+    
+    def _create_notes(self, playgrounds):
+        return []
 
 class PlayerMusic(music.Music):
+    """
+    The custom music created by the player
+    
+    Attributes
+    ----------
+    self.bpm : int
+        BPM of the music
+    self._fake_notes : list
+        List representing what notes are Fake Notes
+    self._slow_notes : list
+        List representing what notes are Slow Notes
+    self._slow_heights : list
+        List with the heights of the notes
+    self.paused : bool
+        If the music is paused
+    self.label_duration : int
+        How many milisecons a note lasts
+    self._file_path : str
+        Path to the music file
+    self.notes_list : list
+        List of music notes
+    self._labels : list
+        The labels of each note
+    self._columns : list
+        The key field column where each note plays
+    self.time_intervals : list
+        List of intervals of each note
+    self.multiplayer_info : list
+        A list containing the multiplayer information 
+    self.total_notes : int
+        Number of total notes of the music
+    self.speed : int
+        The speed of the music
+    self.playgrounds : list
+        A list containing all the playgrounds the music utilizes
+    self._song : pygame.mixer.Sound
+        The music initialized as a Sound
+    self._channel pg.mixer.Channel
+        A pygame channel for the sound version of the song
+    self.has_panning : bool
+        A boolean representing if the song has panning
+    self.length : int
+        Length of the music in miliseconds
+    """
     def __init__(self, file, speed, int_columns, labels, bpm, fake_notes, slow_notes, slow_heights, file_delay):
         self.paused = False
         
@@ -53,17 +139,17 @@ class PlayerMusic(music.Music):
         
         
         self._song = pg.mixer.Sound(file)
-        self._channel = pg.mixer.Channel(1)
+        self.channel = pg.mixer.Channel(1)
         self.has_panning = False
         a = pg.mixer.Sound(self._file_path)
         self.length = a.get_length()
         
         
-    def _create_intervalss(self):
+    def _create_intervals(self):
         intervals = []
-        label_length = 60000/(4*self.bpm)
+        
         for i in self._labels:
-            intervals.append(i*label_length + self.file_delay) 
+            intervals.append(i*self.label_duration + self.file_delay) 
         return intervals
     
     def _create_notes(self, playgrounds : list[pgr.Playground]):
@@ -72,6 +158,34 @@ class PlayerMusic(music.Music):
 
 
 class DevMode:
+    """
+    A class that does all the creating and editing of the custom player music
+    
+    Attributes
+    ----------
+    self.configs : dict
+        All the player musics information
+    self.music_info : dict
+        Information of current music
+    self.music_list : list
+        List containing Player and Void music
+    self.music : str
+        Music name
+    self.developer_keys : list
+        List with the keyboard keys used by edit mode
+    self.active_music_idx : int
+        Index of the active music in music list
+    self.hidden_music_idx : int
+        Index of the non-active music in music list
+    self.BPM : int
+        Music BPM
+    self.max_visible_index : int
+        Index of the last note in screen
+    self.min_visible_index : int
+        Index of first visible note in screen
+    self.round : cr.CurrentRound
+        The round the DevMode class manages    
+    """
     
     def __init__(self, music_name, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]],dkeys=[pg.K_LSHIFT, pg.K_q, pg.K_e, pg.K_r, pg.K_m, pg.K_LEFT, pg.K_RIGHT,
                                                                                pg.K_UP, pg.K_DOWN, pg.K_RETURN, pg.K_DELETE, pg.K_INSERT, pg.K_p], active=False, editing_music=False):
@@ -82,15 +196,13 @@ class DevMode:
         if self.configs.keys().isdisjoint([music_name]): self._new_music(music_name)
         
         self.music = music_name
-        self.active = active
         self.developer_keys = dkeys
         self.active_music_idx = 1
         self.hidden_music_idx = 0
         self.BPM = self.music_info["BPM"]
         
 
-        if self.active:
-            self.music_list = [
+        self.music_list = [
                 VoidMusic(self.music_info["music_file"], self.music_info["speed"], self.BPM),
                 PlayerMusic(self.music_info["music_file"], self.music_info["speed"],
                             self.music_info["keyfields"], self.music_info["labels"],
@@ -98,7 +210,7 @@ class DevMode:
                             self.music_info["slow_notes"], self.music_info["slow_durations"], 
                             self.music_info["file_delay"])
             ]
-            self.active_music = self.music_list[self.active_music_idx]
+        self.active_music = self.music_list[self.active_music_idx]
         self.index_selected = 0
         self.editing_note = False
         self.max_visible_index = 0

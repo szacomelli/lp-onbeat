@@ -58,6 +58,7 @@ class CurrentRound:
         if self.stop_index >= len(self.notes_to_play) - 1: 
             self.stop_index = len(self.notes_to_play) - 2
             self.max_index = self.stop_index
+        
         while self.stop_index != self.max_index and pg.mixer.music.get_pos() + self.music_start_pos + (2000/480)*self._screen_size[0] >= self.notes_interval[self.stop_index + 1]:
             self.stop_index += 1
             
@@ -92,16 +93,14 @@ class CurrentRound:
                         if key_field.detect_FakeNote(actual_note): 
                             self.combo = 0
                     self.combo = key_field.detect_SlowNote(actual_note, self.combo)
-                    pts = actual_note.calculate_points()
-                    print(pts)
-                    self.total_points += pts*self.calculate_combo_multiplier(self.combo)
-                    self.remaining_misses += 1
+                    self.total_points += actual_note.calculate_points()*self.calculate_combo_multiplier(self.combo)
+                    self._remaining_misses += 1
                 else:
                     if self.__dev_active: 
                         dev.create_music(self.music_start_pos, self.music.playgrounds[self.active_playground].key_fields.index(key_field))
                     key_field.pressed = True
                     self.combo = 0
-                    self.remaining_misses -= 1
+                    self._remaining_misses -= 1
     
     # just calculates the multiplier the player gets by each hit note
     def calculate_combo_multiplier(self, combo):
@@ -148,7 +147,7 @@ class CurrentRound:
                             hasSlow = True
                     if note.updating:
                         self.combo = 0
-                        self.remaining_misses -= 1
+                        self._remaining_misses -= 1
                         self.total_points -= 1
                     if not hasSlow: self.start_index += 1
                            
@@ -157,7 +156,7 @@ class CurrentRound:
             self.music.update()
 
         if self.total_points < 0: self.total_points = 0
-        if self.remaining_misses <= 0: self.game_over = True
+        if self._remaining_misses <= 0: self.game_over = True
         
         self._combo_txt = self.create_text("Combo: ",self.combo)
         self._score_txt = self.create_text("Score: ",self.total_points)

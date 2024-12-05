@@ -3,6 +3,7 @@ import math
 import notes as nt
 import keyfields as kf
 import playground as pgr
+from abc import ABC, abstractmethod
 
 # these classes keep the information to build the original songs of the game
 class Music:
@@ -12,7 +13,7 @@ class Music:
         # (in miliseconds)
         self.label_duration = 60000/(4*self.bpm)
         # path of the .mp3 or .ogg
-        self.file_path = file
+        self._file_path = file
         # interval of a note = the moment the note plays in the song (in miliseconds)
         self.time_intervals = self._create_intervals()
         # a list with all the notes (objects) that will be played
@@ -26,12 +27,14 @@ class Music:
         self._song = pg.mixer.Sound(file)
         self._channel = pg.mixer.Channel(1)
         self.has_panning = False
-        a = pg.mixer.Sound(self.file_path)
+        a = pg.mixer.Sound(self._file_path)
         self.length = a.get_length()
 
+    @abstractmethod
     def _create_intervals(self):
         return
     
+    @abstractmethod
     def _create_notes(self, playgrounds):
         return
 
@@ -41,7 +44,7 @@ class Music:
             self._channel.set_volume(1,0)
             volume = 0.5
         pg.mixer.music.set_volume(volume)
-        pg.mixer.music.load(self.file_path)
+        pg.mixer.music.load(self._file_path)
         pg.mixer.music.play(start=0)
         
         if self.has_panning: self._channel.play(self._song)
