@@ -1,11 +1,54 @@
 import pygame as pg
 import math
 import notes as nt
-import keyfields
+import keyfields as kf
 import playground as pgr
 
 class Music:
     def __init__(self, file, speed=0, bpm=120, multiplayer=[False,1]):
+        """
+        Constructor for Music
+        
+        Parameters
+        ----------
+        file : str
+            Path to the music file
+        speed : int
+            Speed of the music
+        bpm : int
+            BPM of the music
+        multiplayer : list
+            A list containing the multiplayer information
+            
+        Attributes
+        ----------
+        self.bpm : int
+            BPM of the music
+        self.label_duration : int
+            Duration of the labels (in miliseconds)
+        self.file_path : str
+            Path to the music file
+        self.time_intervals : list
+            List of intervals of each note
+        self.notes_list : list
+            List of music notes
+        self.total_notes : int
+            Number of total notes of the music
+        self.speed : int
+            Speed of the music
+        self.playgrounds : list
+            List containing all the playgrounds the music utilizes
+        self.multiplayer_info : list
+            List containing the multiplayer information
+        self.song : pygame.mixer.Sound
+            The music initialized as a Sound
+        self.channel : pygame.mixer.Channel
+            A pygame channel for the sound version of the song
+        self.has_panning : bool
+            A boolean representing if the song has panning
+        self.length : int
+            Length of the music in miliseconds
+        """
         self.bpm = bpm
         self.label_duration = 60000/(4*self.bpm)
         self.file_path = file
@@ -22,12 +65,38 @@ class Music:
         self.length = a.get_length()
 
     def create_intervals(self):
+        """
+        Returns a list of intervals (in miliseconds) that represent the duration of
+        each note in the music. The intervals are calculated based on the BPM of
+        the music and the duration of each label (in miliseconds)
+        """
         return
     
     def create_notes(self, playgrounds):
+        """
+        Creates a list of music notes based on the time intervals of the song and
+        the playgrounds given
+        
+        Parameters
+        ----------
+        playgrounds : list[pgr.Playground]
+            List of playgrounds to create the notes for
+        """
+        
         return
 
     def play_music(self):
+        """
+        Plays the music file associated with this instance. Adjusts the volume
+        based on whether panning is enabled and plays the music from the start.
+        
+        If the music has panning, it will adjust the channel's volume settings 
+        to create a panning effect and set a lower overall volume.
+        
+        Returns
+        -------
+        None
+        """
         volume = 1   
         
         if self.has_panning: 
@@ -42,9 +111,41 @@ class Music:
         
 
     def get_music_delay(self):
+        """
+        Returns the delay between the current time and the current position of the
+        music playing in miliseconds. This is used to synchronize the falling of
+        the notes with the music.
+        
+        Returns
+        -------
+        int
+            Time delay in miliseconds
+        """
         return (pg.time.get_ticks() - pg.mixer.music.get_pos())
     
-    def int_to_notes(self, key_fields : list[keyfields.KeyField], list : list[int], slow_notes_indexes=[], fake_notes_indexes=[], slow_notes_height=[]):
+    def int_to_notes(self, key_fields : list[kf.KeyField], list : list[int], slow_notes_indexes=[], fake_notes_indexes=[], slow_notes_height=[]):
+        """
+        Converts a list of integers into a list of music notes. The list of integers
+        will be used as the index of the key fields list to create the notes. 
+
+        Parameters
+        ----------
+        key_fields : list[kf.KeyField]
+            List of key fields to create the notes for
+        list : list[int]
+            List of integers to convert to notes
+        slow_notes_indexes : list[int]
+            List of indexes of the notes that will be converted to slow notes
+        fake_notes_indexes : list[int]
+            List of indexes of the notes that will be converted to fake notes
+        slow_notes_height : list[int]
+            List of heights of the slow notes
+
+        Returns
+        -------
+        list[nt.Note]
+            List of music notes
+        """
         notes_list = []
         for i in list:
             notes_list.append(nt.FastNote(key_fields[i],i))
@@ -63,6 +164,31 @@ class Music:
     
 class ItaloMusic(Music):
     def __init__(self, file, speed=2.5, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]], multiplayer=[False,1]):
+        """
+        Initializes an instance of ItaloMusic.
+
+        Parameters
+        ----------
+        file : str
+            Path to the music file.
+        speed : float, optional
+            Speed of the music, default is 2.5.
+        keys : list of list of int, optional
+            Key mappings for the playgrounds, default is [[pg.K_d, pg.K_f, pg.K_j, pg.K_k]].
+        multiplayer : list, optional
+            Information about multiplayer setup, default is [False, 1].
+
+        Attributes
+        ----------
+        speed : float
+            Speed of the music.
+        playgrounds : list
+            List of playground instances for the music.
+        notes_list : list
+            List of notes created for the music.
+        total_notes : int
+            Total number of notes created for the music.
+        """
         super().__init__(file, multiplayer=multiplayer)
         self.speed = speed
         
@@ -81,6 +207,14 @@ class ItaloMusic(Music):
         self.total_notes = len(self.notes_list)
 
     def create_intervals(self):
+        """
+        Creates a list of time intervals for the music in milliseconds.
+
+        Returns
+        -------
+        list
+            A list of time intervals in milliseconds.
+        """
         intervals = [8000, 8250, 8500, 8633, 8766, 9000, 9333, 9666, 10000, 12000, 12250, 
                          12500, 12633, 12766, 13000, 13333, 13666, 14000, 16000, 16250, 16500, 
                          16633, 16766, 17000, 17333, 17666, 18000, 18250, 18500, 18633, 18766, 
@@ -105,6 +239,22 @@ class ItaloMusic(Music):
         return intervals
 
     def create_notes(self, playgrounds):
+        """
+        Generates a list of music notes based on predefined integer sequences and specified playgrounds.
+
+        This method converts a sequence of integers into a corresponding sequence of music notes. 
+        Some of these notes are designated as slow notes, with specific heights assigned to them.
+
+        Parameters
+        ----------
+        playgrounds : list[pgr.Playground]
+            A list of playground objects where each playground contains key fields used to generate notes.
+
+        Returns
+        -------
+        list[nt.Note]
+            A list of note objects created from the given playgrounds and predefined sequences.
+        """
         ints_list = [0, 0, 1, 2, 1, 3, 3, 2, 0, 0, 0, 1, 2, 1, 3, 3, 3, 2, 0, 0, 1, 2, 1, 3, 3, 3, 0, 0, 1, 2, 1, 3, 3, 3, 
                      2, 2, 1, 2, 1, 0, 0, 0, 1, 2, 3, 0, 0, 1, 2, 1, 2, 2, 2, 0, 0, 0, 1, 0, 2, 1, 2, 1, 0, 1, 3, 2, 2, 3, 
                      2, 2, 3, 2, 0, 1, 0, 0, 3, 1, 2, 3, 2, 1, 1, 2, 2, 2, 1, 2, 1, 0, 1, 0, 0, 0, 0, 1, 0, 2, 1, 2, 1, 0, 
@@ -120,6 +270,31 @@ class ItaloMusic(Music):
 class StardewMusic(Music):
 
     def __init__(self, file, speed=2, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]], multiplayer=[False,1]):
+        """
+        Initializes an instance of StardewMusic.
+
+        Parameters
+        ----------
+        file : str
+            Path to the music file.
+        speed : float, optional
+            Speed of the music, default is 2.
+        keys : list of list of int, optional
+            Key mappings for the playgrounds, default is [[pg.K_d, pg.K_f, pg.K_j, pg.K_k]].
+        multiplayer : list, optional
+            Information about multiplayer setup, default is [False, 1].
+
+        Attributes
+        ----------
+        speed : float
+            Speed of the music.
+        playgrounds : list
+            List of playground instances for the music.
+        notes_list : list
+            List of notes created for the music.
+        total_notes : int
+            Total number of notes created for the music.
+        """
         super().__init__(file, multiplayer=multiplayer)
         
         pg_numbers = [1,1]
@@ -133,6 +308,14 @@ class StardewMusic(Music):
         self.total_notes = len(self.notes_list)
 
     def create_intervals(self):
+        """
+        Creates a list of time intervals for the music in milliseconds.
+        
+        Returns
+        -------
+        list
+            A list of time intervals in milliseconds.
+        """
         intervals = [8000, 8250, 8625, 8875, 9000, 9125, 9250, 9500, 9750, 10000, 10250, 10500, 
                      10750, 10875, 11000, 11125, 11375, 11500, 11750, 12000, 12250, 12625, 12875, 
                      13000, 13125, 13250, 13500, 13750, 14000, 14250, 14500, 14750, 14875, 15125, 
@@ -176,6 +359,21 @@ class StardewMusic(Music):
         return intervals
     
     def create_notes(self, playgrounds : list[pgr.Playground]):
+        """
+        Creates a list of music notes based on the time intervals of the song and
+        the playgrounds given
+        
+        Parameters
+        ----------
+        playgrounds : list[pgr.Playground]
+            List of playgrounds to create the notes for
+        
+        Returns
+        -------
+        list[nt.Note]
+            List of notes created
+        """
+        
         notes = []
         last = 0
         inc = 0
@@ -192,13 +390,40 @@ class StardewMusic(Music):
                 notes.append(nt.FastNote(playgrounds[0].key_fields[i % 3],i % 3))
                 notes.append(nt.FastNote(playgrounds[0].key_fields[(i % 3) + 1],(i % 3) + 1))
                 last = i
-            else:
-                notes.append(nt.FastNote(playgrounds[0].key_fields[i % 4],i % 4))
-                last = i
+            elif last != i:
+                notes.append(nt.FastNote(playgrounds[0].key_fields[i % 4], i % 4))
+                
+            last = i
         return notes
     
 class StakesMusic(Music):
     def __init__(self, file, speed=2, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]], multiplayer=[False,1]):
+        """
+        Initializes an instance of StakesMusic.
+        
+        Parameters
+        ----------
+        file : str
+            Path to the music file.
+        speed : float, optional
+            Speed of the music, default is 2.
+        keys : list of list of int, optional
+            Key mappings for the playgrounds, default is [[pg.K_d, pg.K_f, pg.K_j, pg.K_k]].
+        multiplayer : list, optional
+            Information about multiplayer setup, default is [False, 1].
+        
+        Attributes
+        ----------
+        speed : float
+            Speed of the music.
+        playgrounds : list
+            List of playground instances for the music.
+        notes_list : list
+            List of notes created for the music.
+        total_notes : int
+            Total number of notes created for the music.
+        """
+        
         super().__init__(file, speed, 111, multiplayer)
         self.has_panning = True
         
@@ -216,9 +441,16 @@ class StakesMusic(Music):
         self.speed = speed
         self.notes_list = self.create_notes(self.playgrounds)
         self.total_notes = len(self.notes_list)
-        
-        
+           
     def create_intervals(self):        
+        """
+        Creates a list of time intervals for the music in milliseconds.
+        
+        Returns
+        -------
+        list
+            A list of time intervals in milliseconds.
+        """
         intervals = [
              (
               [8649, 8919, 9189, 9324, 9595, 10811, 11081, 11351, 11486, 11757, 12973, 13243, 13514, 13649, 13919, 15135, 15405, 15676, 15811, 
@@ -249,6 +481,16 @@ class StakesMusic(Music):
     
     
     def create_notes(self,playgrounds : list[pgr.Playground]):
+        """
+        Creates a list of music notes based on the time intervals of the song and
+        the playgrounds given
+        
+        Parameters
+        ----------
+        playgrounds : list[pgr.Playground]
+            List of playgrounds to create the notes for
+        """
+        
         notes = []
         
         columns = [0, 0, 1, 0, 1, 2, 2, 3, 2, 3, 0, 0, 1, 0, 1, 2, 2, 3, 2, 3, 0, 0, 3, 0, 3, 1, 1, 2, 1, 2, 0, 0, 
@@ -276,6 +518,18 @@ class StakesMusic(Music):
     
     
     def update(self):
+        """
+        Updates the music object by setting the volume of the music channel
+        based on the current position of the music.
+        
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        None
+        """
         music_pos = pg.mixer.music.get_pos()        
         right_triggers = [0, 30270, 68108, 77297, 86486, 102568]
         left_triggers = [0, 16081, 50811, 72973, 81216, 98243, 104730]

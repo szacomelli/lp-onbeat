@@ -464,6 +464,7 @@ class Game(Screen):
         pg.mixer.pre_init(44100, channels=2, buffer=512)
         pg.mixer.init()
         super().__init__(manager)
+        self.needs_resize = True
         print(pg.mixer.get_init())
         self.resize = True
 
@@ -471,8 +472,11 @@ class Game(Screen):
         width, height = screen.get_size()
         self.imagem = pg.transform.scale(self.imagem_original, (width, height))
 
+    def resize_background(self, screen):
+        width, height = screen.get_size()
+        self.imagem = pg.transform.scale(self.imagem_original, (width, height))
     def resize(self, screen):
-        super().resize(screen)
+        return super().resize(screen)
 
     def draw(self, screen):
         screen.fill((0,0,0))
