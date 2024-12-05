@@ -65,6 +65,7 @@ devmode.round.start_round()
 running = True
 resize = False
 resize2=False
+
 while running:
     for event in pg.event.get():
         # for round in rounds:
