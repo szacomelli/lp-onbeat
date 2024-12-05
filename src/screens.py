@@ -360,7 +360,7 @@ class MusicCatalog(Screen):
             self.manager.round_start()
             self.start_game(1)
 
-        if self.dict_buttons[self.name_player[1]].is_clicked(event):
+        elif self.dict_buttons[self.name_player[1]].is_clicked(event):
             self.manager.multiplayer = True
             self.manager.define_music(self.index)
             self.manager.round_start()
@@ -741,9 +741,9 @@ class GameDev(Screen):
         screen.fill((0,0,0))
         self.resize_background(screen)
         screen.blit(self.imagem, (0, 0))
-        self.dev.round.draw_objects(screen, self.keys)
-        self.dev.draw_selection(screen, self.manager.dev.round.notes_to_play, self.manager.dev.round.music_start_pos, self.manager.dev.round.stop_index)
-        self.dev.draw(screen, self.manager.dev.round.music_start_pos, self.manager.dev.round.text_font)
+        self.manager.dev.round.draw_objects(screen, self.keys)
+        self.manager.dev.draw_selection(screen, self.manager.dev.round.notes_to_play, self.manager.dev.round.music_start_pos, self.manager.dev.round.stop_index)
+        self.manager.dev.draw(screen, self.manager.dev.round.music_start_pos, self.manager.dev.round.text_font)
         pg.display.flip()
 
     def update(self, screen):
@@ -751,7 +751,7 @@ class GameDev(Screen):
         self.manager.dev.round.play_notes()
         self.keys = pg.key.get_pressed()
         self.undone = False
-        self.manager.dev.round.update(self.keys, screen, self.resize)
+        self.manager.dev.round.update(self.keys, screen, self.resize, self.manager.dev)
 
     def on_event(self,event, screen):
         self.manager.dev.on_event(event)

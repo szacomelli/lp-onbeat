@@ -66,7 +66,7 @@ class VoidMusic(music.Music):
         
         self.paused = False
         self.label_duration = 60000/(4*bpm)
-        self._file_path = file
+        self.file_path = file
         self.notes_list = []
         self.labels = []
         self._columns = []
@@ -75,10 +75,10 @@ class VoidMusic(music.Music):
         self.total_notes = 0
         self.speed = speed
         self.playgrounds = playgrounds
-        self._song = pg.mixer.Sound(file)
-        self._channel = pg.mixer.Channel(1)
+        self.song = pg.mixer.Sound(file)
+        self.channel = pg.mixer.Channel(1)
         self.has_panning = False
-        a = pg.mixer.Sound(self._file_path)
+        a = pg.mixer.Sound(self.file_path)
         self.length = a.get_length()
         
     def _create_intervals(self):
@@ -163,7 +163,7 @@ class PlayerMusic(music.Music):
         self._slow_heights = slow_heights    
         self.playgrounds = playgrounds
         self.multiplayer_info = [False, 1]
-        self._file_path = file
+        self.file_path = file
         
         self.notes_list = self._create_notes(self.playgrounds)
         self._labels = labels
@@ -176,7 +176,7 @@ class PlayerMusic(music.Music):
         self._song = pg.mixer.Sound(file)
         self.channel = pg.mixer.Channel(1)
         self.has_panning = False
-        a = pg.mixer.Sound(self._file_path)
+        a = pg.mixer.Sound(self.file_path)
         self.length = a.get_length()
         
         
@@ -208,7 +208,7 @@ class PlayerMusic(music.Music):
         list
             A list of note objects created for the music.
         """
-        note_list = self._int_to_notes(playgrounds[0].key_fields,self._columns,self._slow_notes,self._fake_notes,self._slow_heights)
+        note_list = self.int_to_notes(playgrounds[0].key_fields,self._columns,self._slow_notes,self._fake_notes,self._slow_heights)
         return note_list
 
 
