@@ -23,15 +23,20 @@ class KeyField:
         screen_height = pg.display.get_surface().get_height()
         self.space_rect = pg.Rect(x, 0, size, screen_height)
         self.sprite_line = MakeSprite(self.space_rect, f"./assets/game_screen/line/center/center_{MakeSprite.identify_sprite(sprite_path)}.png")
-        self.trian_rect = pg.Rect(x, 0, size, size)
+        
+        
+        self.trian_rect = pg.Rect(x, 0, size, size//2)
         self.sprite_trian = MakeSprite(self.trian_rect, f"./assets/game_screen/trian/trian_{MakeSprite.identify_sprite(sprite_path)}.png")
-        self.shadow_rect = pg.Rect(x, y, size, size)
-        self.sprite_shadow = MakeSprite(self.shadow_rect, f"./assets/game_screen/shadow/shadow_{MakeSprite.identify_sprite(sprite_path)}.png")
+        self.shadow_sup_rect = pg.Rect(0, 0, size, size)
+        self.sprite_shadow_sup = MakeSprite(self.shadow_sup_rect, f"./assets/game_screen/shadow/sup/shadow_{MakeSprite.identify_sprite(sprite_path)}.png")
+        self.shadow_inf_rect = pg.Rect(x, screen_height, size, screen_height - y)
+        self.sprite_shadow_inf = MakeSprite(self.shadow_inf_rect, f"./assets/game_screen/shadow/inf/shadow_inf_{MakeSprite.identify_sprite(sprite_path)}.png")
 
 
     def draw(self, display):
         self.sprite_line.draw(display)
-        self.sprite_shadow.draw(display)
+        self.sprite_shadow_sup.draw(display)
+        self.sprite_shadow_inf.draw(display) 
         self.sprite_trian.draw(display)
 
         if self.pressed:
@@ -63,7 +68,43 @@ class KeyField:
 
 
 class MakeSprite:
+    """
+    A class used to create and manage sprites in a Pygame application.
+    Attributes
+    ----------
+    rect : pygame.Rect
+        Defines the position and size of the sprite on the display surface.
+    sprite : pygame.Surface
+        The loaded sprite image, initialized from the given file path.
+
+    Methods
+    -------
+    __init__(rect, sprite_path)
+        Initializes the MakeSprite object with a rectangle and a sprite image path.
+    load_sprites(filepath: str) -> list
+        Class method that loads all sprite file paths from a given directory.
+    identify_sprite(sprite_path: str) -> str
+        Class method that identifies a sprite based on its file path.
+    draw(display)
+        Draws the sprite on the given display surface, scaling it to fit the rectangle.
+    """
     def __init__(self, rect, sprite_path):
+        
+        """
+        Initializes the MakeSprite object with a rectangle and a sprite image path.
+
+        Parameters
+        ----------
+        rect : pygame.Rect
+            The rectangle defining the position and size of the sprite.
+        sprite_path : str
+            The file path of the sprite image.
+
+        Raises
+        ------
+        RuntimeError
+            If the Pygame display has not been initialized.
+        """
         if not pg.display.get_init():
             raise RuntimeError("O display do Pygame precisa ser inicializado antes de carregar imagens.")
         self.sprite = pg.image.load(sprite_path).convert_alpha()
@@ -71,6 +112,19 @@ class MakeSprite:
 
     @classmethod
     def load_sprites(cls, filepath: str) -> list:
+        """
+        Class method that retrieves all sprite file paths from a given directory.
+
+        Parameters
+        ----------
+        filepath : str
+            The path of the directory containing the sprite files.
+
+        Returns
+        -------
+        list
+            A sorted list of file paths for the sprite images in the directory.
+        """
         sprite_paths = []
         for sprite_file in Path(filepath).iterdir():
             if sprite_file.is_file():
@@ -78,27 +132,33 @@ class MakeSprite:
         return sorted(sprite_paths)
     @classmethod
     def identify_sprite(cls, sprite_path: str) -> str:
+        """
+        Class method that extracts an identifier for the sprite from its file name.
+
+        Parameters
+        ----------
+        sprite_path : str
+            The file path of the sprite image.
+
+        Returns
+        -------
+        str
+            The last character of the file name (excluding its extension), 
+            which is assumed to be the sprite's identifier.
+        """
         nothing_extention = os.path.splitext(sprite_path)[0]
         return nothing_extention[-1]
-<<<<<<< HEAD
-=======
-    # @classmethod
-    # def make_background(cls, screen, file_path: str, width: int, x_pos: int):
-        # if not pg.display.get_init():
-        #         raise RuntimeError("O display do Pygame precisa ser inicializado antes de carregar imagens.")
-    #     bg_image = pg.image.load(file_path).convert_alpha() 
-    #     screen_height = pg.display.get_surface().get_height()
-    #     scaled_bg = pg.transform.scale(bg_image, (width, screen_height))
-    #     # Define o rect para o fundo
-    #     rect = pg.Rect(x_pos, 0, width, screen_height)
-    #     return cls(rect, file_path)
->>>>>>> 64687c16c70cfb72d7de5c2b3ed05a19eadf9af9
     
     def draw(self, display):
 
+        """
+        Draws the sprite on the display surface.
+
+        Parameters
+        ----------
+        display : pygame.Surface
+            The display surface on which the sprite will be drawn.
+        """
+
         scaled_sprite = pg.transform.scale(self.sprite, self.rect.size)
-<<<<<<< HEAD
         display.blit(scaled_sprite, self.rect.topleft)
-=======
-        display.blit(scaled_sprite, self.rect.topleft)
->>>>>>> 64687c16c70cfb72d7de5c2b3ed05a19eadf9af9

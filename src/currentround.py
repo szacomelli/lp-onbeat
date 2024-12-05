@@ -1,9 +1,9 @@
 import pygame as pg
 import notes
 import music
-import keyfields
 import playground
 import devmode
+import os
 
 class CurrentRound:
     def __init__(self,  music : music.Music, screen_size=[480,640], switch_key=pg.K_SPACE, dev=False, music_name="Musica2", editing_music=False):
@@ -19,7 +19,10 @@ class CurrentRound:
         self.notes_to_play = self.music.notes_list
         self.notes_interval = self.music.time_intervals
 
-        # tets
+        font_path = os.path.join("assets", "8bitoperator.ttf")
+        if not os.path.exists(font_path):
+            raise FileNotFoundError(f"Fonte não encontrada: {font_path}")
+        self.font = pg.font.Font(font_path, 20)
         
         self.start_index = 0
         self.stop_index = -1
@@ -39,7 +42,6 @@ class CurrentRound:
         self.text_ratio = [1,1]
         self.switch_key = switch_key
         
-        self.font = pg.font.Font("./assets/8bitoperator.ttf", self.text_font)
         self.msg = ["Miss", "Bad","Great!", "Perfect!",""]
         self.i = 4
         self.messages = [self.font.render(self.msg[0], True, (255, 255, 255)),
@@ -94,12 +96,18 @@ class CurrentRound:
             self.notes_to_play[i].draw(screen)
             
         if self.dev.active: self.dev.draw_selection(screen, self.notes_to_play, self.music_start_pos, self.stop_index, self.round_callback)
-        
+
+        combo_rect = self.combo_txt.get_rect(topleft=(self.text_x, self.text_y[0]))
+        score_rect = self.score_txt.get_rect(topleft=(self.text_x, self.text_y[1]))
+        unified_rect = combo_rect.union(score_rect).inflate(25, 25)
+        pg.draw.rect(screen, (150, 80, 180), unified_rect)
             
         if self.dev.active: self.dev.draw(screen, self.music_start_pos, self.text_font)
         screen.blit(self.combo_txt, (self.text_x, self.text_y[0]))
         screen.blit(self.score_txt, (self.text_x, self.text_y[1]))
         screen.blit(self.messages[self.i], (self.x_pos, self.y_pos))
+        for playground in self.music.playgrounds:
+            playground.make_border(screen)
         
 
     def on_key_press(self, keys, notes_list):        
@@ -115,37 +123,40 @@ class CurrentRound:
                         # VERIFY
                         notes_list[note_idx].updating = False
                         
-                        
                         if key_field.detect_FakeNote(actual_note): 
                             self.combo = 0
 
                     self.combo = key_field.detect_SlowNote(actual_note, self.combo)
                     # VERIFY
-                        
-                        
+                    self.points_message(actual_note, key_field)
+                    active_pg = self.music.playgrounds[self.active_playground]
+                    pg_rect = active_pg.get_rect()  # Adicione um método `get_rect` em `playground` para obter o rect.
+                    self.x_pos = pg_rect.x + (pg_rect.width - self.messages[self.i].get_width()) // 2
+                    self.y_pos = pg_rect.y + (pg_rect.height - self.messages[self.i].get_height()) // 2
                     n = actual_note.calculate_points()
-                    print(n)
-                    if n == 0:
-                        self.i = 4
-                    elif n == 1:
-                        self.i = 1
-                    elif n == 3:
-                        self.i = 2
-                    elif n == 5:
-                        self.i = 3
-                    else:
-                        self.i = 4
-                        pass
-                    self.x_pos = (self.screen_size[1] - self.messages[self.i].get_width()) // 2
-                    self.y_pos = (self.screen_size[0] - self.messages[self.i].get_height()) // 2
-                    
                     self.total_points += n*self.calculate_combo_multiplier(self.combo)
                     
                 else:
                     if self.dev.active: self.dev.create_music(self.music_start_pos, self.music.playgrounds[self.active_playground].key_fields.index(key_field))
                     key_field.pressed = True
                     self.combo = 0
-     
+
+    def points_message(self, actual_note, key_field):
+        n = actual_note.calculate_points()
+        if n == 0:
+            self.i = 4  # Miss
+        elif n == 1:
+            self.i = 1  # Bad
+        elif n == 3:
+            self.i = 2  # Great
+        elif n == 5:
+            self.i = 3  # Perfect
+        else:
+            self.i = 4  # Default case
+
+        self.x_pos = (self.screen_size[1] - self.messages[self.i].get_width()) // 2
+        self.y_pos = (self.screen_size[0] - self.messages[self.i].get_height()) // 2
+        
     def change_music(self):
         if self.dev.active:
             self.music_start_pos = 0
@@ -209,7 +220,6 @@ class CurrentRound:
                     self.start_index += 1
                     note.reset()        
 
-        # test
         if self.music.has_panning:
             self.music.update()
 
@@ -226,6 +236,5 @@ class CurrentRound:
         self.text_ratio = [width_ratio,height_ratio]
 
     def create_text(self, text, number):
-        font = pg.font.SysFont('Comic Sans MS', self.text_font)
-        return font.render(text+str(number), False, (220, 0, 0))
+        return self.font.render(text + str(number), True, (255, 255, 255))
     

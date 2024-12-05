@@ -66,7 +66,7 @@ class Screen(ABC):
         self.fonte_title = pg.font.Font("./assets/8bitoperator.ttf", 35)
         self.fonte_subtitle = pg.font.Font("./assets/8bitoperator.ttf", 20)
         self.fonte_subsubtitle = pg.font.Font("./assets/8bitoperator.ttf", 17)
-        self.imagem_original = pg.image.load("./assets/tela/fundo.png")
+        self.imagem_original = pg.image.load("./assets/game_screen/fundo.png")
         self.imagem = pg.transform.scale(self.imagem_original, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
     @abstractmethod
@@ -262,9 +262,9 @@ class MusicCatalog(Screen):
         self.dict_buttons["back"] = Button(SCREEN_WIDTH//2 - self.button_width//2, (SCREEN_HEIGHT//9) + 2*(self.button_height + 10) + 120,\
                                              self.button_width, self.button_height, self.name_buttons[1], self.fonte_title)
         self.dict_buttons["right"] = Button(SCREEN_WIDTH//2 - self.button_width//2 + self.button_width +2, (SCREEN_HEIGHT//9) + 120, 25,\
-                                             self.button_height, " ", self.fonte_subsubtitle, color_hover=(0, 0, 255, 0), texture_path = "./assets/tela/right_button.png" )
+                                             self.button_height, " ", self.fonte_subsubtitle, color_hover=(0, 0, 255, 0), texture_path = "./assets/game_screen/right_button.png" )
         self.dict_buttons["left"] = Button(SCREEN_WIDTH//2 - self.button_width//2 - 30, (SCREEN_HEIGHT//9) + 120, 25,\
-                                             self.button_height, " ", self.fonte_subsubtitle, color_hover=(0, 0, 255, 0), texture_path = "./assets/tela/left_button.png" )
+                                             self.button_height, " ", self.fonte_subsubtitle, color_hover=(0, 0, 255, 0), texture_path = "./assets/game_screen/left_button.png" )
         self.loading_message = self.fonte_title_game.render("OnBeat!!", True, (255, 255, 255))
         self.index=0
 
@@ -358,8 +358,8 @@ class Key(Screen):
         self.waiting_for_input = None
         
         for i, key in enumerate(keys):
-            texture_path = filepath + f"botao_{i%4}.png"
-            self.dict_buttons_keys[f"botao{i}"] = Button((SCREEN_WIDTH//9) + 2 * i * SCREEN_WIDTH//9, SCREEN_HEIGHT//2,SCREEN_WIDTH // 9, SCREEN_WIDTH // 9,\
+            texture_path = filepath + f"button_{i%4}.png"
+            self.dict_buttons_keys[f"button{i}"] = Button((SCREEN_WIDTH//9) + 2 * i * SCREEN_WIDTH//9, SCREEN_HEIGHT//2,SCREEN_WIDTH // 9, SCREEN_WIDTH // 9,\
                                                     pg.key.name(key), self.fonte_subtitle,self.hover_color, self.text_color, texture_path)
 
         self.dict_buttons["back"] = Button(SCREEN_WIDTH//2 - self.button_width//2, SCREEN_HEIGHT - self.button_height*2, self.button_width,\
@@ -371,8 +371,8 @@ class Key(Screen):
     def resize(self, screen):
         super().resize(screen)
         for i in range(len(self.keys)):
-            self.dict_buttons_keys[f"botao{i}"].rect.x = (self.width//15) + i * self.width//9
-            self.dict_buttons_keys[f"botao{i}"].rect.y = self.height//2
+            self.dict_buttons_keys[f"button{i}"].rect.x = (self.width//15) + i * self.width//9
+            self.dict_buttons_keys[f"button{i}"].rect.y = self.height//2
         self.dict_buttons["back"].rect.x = self.width//2 - self.button_width//2
         self.dict_buttons["back"].rect.y =  self.height - self.button_height*2
 
@@ -396,9 +396,9 @@ class Key(Screen):
         screen.blit(self.player2, (self.width - self.width//3  - self.title_text.get_width()//8, self.height//3))
         
         for i in range(len(self.keys)):
-            text_surface = self.dict_buttons_keys[f"botao{i}"].font.render(self.dict_buttons_keys[f"botao{i}"].text, True, self.text_color)
-            text_rect = text_surface.get_rect(center=self.dict_buttons_keys[f"botao{i}"].rect.center)
-            self.dict_buttons_keys[f"botao{i}"].draw(screen)
+            text_surface = self.dict_buttons_keys[f"button{i}"].font.render(self.dict_buttons_keys[f"button{i}"].text, True, self.text_color)
+            text_rect = text_surface.get_rect(center=self.dict_buttons_keys[f"button{i}"].rect.center)
+            self.dict_buttons_keys[f"button{i}"].draw(screen)
             screen.blit(text_surface, text_rect)
         self.dict_buttons["back"].draw(screen)
         self.draw_error_message(screen)
@@ -416,7 +416,7 @@ class Key(Screen):
             
             if new_key not in self.keys: 
                 self.keys[self.waiting_for_input] = new_key
-                self.dict_buttons_keys[f"botao{self.waiting_for_input}"].text = pg.key.name(new_key)
+                self.dict_buttons_keys[f"button{self.waiting_for_input}"].text = pg.key.name(new_key)
                 self.previous_keys = self.keys.copy()  
                 self.error_message = None
                 print("Teclas atualizadas:", self.keys)
@@ -425,7 +425,7 @@ class Key(Screen):
             self.waiting_for_input = None
 
         for i in range(len(self.keys)):
-            if self.dict_buttons_keys[f"botao{i}"].is_clicked(event):
+            if self.dict_buttons_keys[f"button{i}"].is_clicked(event):
                 self.waiting_for_input = i
                 break
 
@@ -437,14 +437,20 @@ class Game(Screen):
         pg.mixer.pre_init(44100, channels=2, buffer=512)
         pg.mixer.init()
         super().__init__(manager)
+        self.needs_resize = True
         print(pg.mixer.get_init())
-        self.resize = False
+        # self.resize = False
 
+    def resize_background(self, screen):
+        width, height = screen.get_size()
+        self.imagem = pg.transform.scale(self.imagem_original, (width, height))
     def resize(self, screen):
-        super().resize(screen)
+        return super().resize(screen)
 
     def draw(self, screen):
         screen.fill((0,0,0))
+        
+        self.resize_background(screen) 
         screen.blit(self.imagem, (0, 0))
         for round in self.manager.round:
             round.draw_objects(screen, self.keys)

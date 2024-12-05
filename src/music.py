@@ -1,7 +1,7 @@
 import pygame as pg
 import math
 import notes as nt
-import keyfields
+import keyfields as kf
 import playground as pgr
 
 class Music:
@@ -44,7 +44,7 @@ class Music:
     def get_music_delay(self):
         return (pg.time.get_ticks() - pg.mixer.music.get_pos())
     
-    def int_to_notes(self, key_fields : list[keyfields.KeyField], list : list[int], slow_notes_indexes=[], fake_notes_indexes=[], slow_notes_height=[]):
+    def int_to_notes(self, key_fields : list[kf.KeyField], list : list[int], slow_notes_indexes=[], fake_notes_indexes=[], slow_notes_height=[]):
         notes_list = []
         for i in list:
             notes_list.append(nt.FastNote(key_fields[i],i))
@@ -192,9 +192,10 @@ class StardewMusic(Music):
                 notes.append(nt.FastNote(playgrounds[0].key_fields[i % 3],i % 3))
                 notes.append(nt.FastNote(playgrounds[0].key_fields[(i % 3) + 1],(i % 3) + 1))
                 last = i
-            else:
-                notes.append(nt.FastNote(playgrounds[0].key_fields[i % 4],i % 4))
-                last = i
+            elif last != i:
+                notes.append(nt.FastNote(playgrounds[0].key_fields[i % 4], i % 4))
+                
+            last = i
         return notes
     
 class StakesMusic(Music):
