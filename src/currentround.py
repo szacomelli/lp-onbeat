@@ -129,15 +129,11 @@ class CurrentRound:
     """
     def __init__(self,  music : music.Music, screen_size=[480,640], switch_key=pg.K_SPACE, dev=False):
         # basic atributtes
->>>>>>> main
+
         self._screen_size = screen_size
         self.active_playground = 0
         self.music_start_pos = 0
         self.__dev_active = dev
-<<<<<<< HEAD
-
-=======
->>>>>>> main
         
         # change the music to dev-selected one. maybe it's better to modularize the dev class to call round, not the other way around
         # also defines some basic attributes for the music and notes
@@ -148,16 +144,12 @@ class CurrentRound:
         self.start_index = 0
         self.stop_index = -1
         self.max_index = len(self.notes_to_play) - 1
-<<<<<<< HEAD
 
         font_path = os.path.join("assets", "8bitoperator.ttf")
         if not os.path.exists(font_path):
             raise FileNotFoundError(f"Fonte não encontrada: {font_path}")
         self.font = pg.font.Font(font_path, 20)
 
-=======
-        
->>>>>>> main
         # score attributes
         self.total_points = 0
         self.combo = 0
@@ -175,7 +167,6 @@ class CurrentRound:
         self.text_ratio = [1,1]
         self.__switch_key = switch_key
         
-<<<<<<< HEAD
         self.msg = ["Miss", "Bad","Great!", "Perfect!",""]
         self.i = 4
         self.messages = [self.font.render(self.msg[0], True, (255, 255, 255)),
@@ -225,21 +216,6 @@ class CurrentRound:
                 self.active_playground = (self.active_playground + 1) % len(self.music.playgrounds)
 
     # selects notes that need to be placed in screen                         
-=======
-    # starts the music
-    def start_round(self):
-        self.music.play_music()
-
-    # keep track of pressed keys; it's used just for the Stakes level or for dev
-    def on_event(self, event):
-        # if self.dev.active:
-        #     self.dev.dev_shorts(event, self.notes_to_play, self.max_index, self.stop_index, self.round_callback, self.music_start_pos, self.change_music)        
-        if event.type == pg.KEYDOWN:
-            if event.key == self.__switch_key:
-                self.active_playground = (self.active_playground + 1) % len(self.music.playgrounds)
-        
-    # selects notes that need to be placed in screen               
->>>>>>> main
     def play_notes(self):
         """
         Plays the notes in the notes_to_play list if the current music position is beyond the time interval of the note.
@@ -263,7 +239,6 @@ class CurrentRound:
             
             self.notes_to_play[self.stop_index].time_interval = self.notes_interval[self.stop_index]
     
-<<<<<<< HEAD
     def draw_objects(self, screen : pg.Surface, keys):        
         """
         Draws all game objects on the screen, including playgrounds, notes, and UI elements.
@@ -279,10 +254,6 @@ class CurrentRound:
         -------
         None
         """
-=======
-    # draw all needed objects
-    def draw_objects(self, screen : pg.Surface, keys):
->>>>>>> main
         for playground in self.music.playgrounds:
             playground.draw(screen)
             for key_fields in playground.key_fields:
@@ -293,7 +264,6 @@ class CurrentRound:
         for i in range(self.start_index, self.stop_index+1, 1):
             self.notes_to_play[i].draw(screen)
             
-<<<<<<< HEAD
         combo_rect = self._combo_txt.get_rect(topleft=(self.text_x, self.text_y[0]))
         score_rect = self._score_txt.get_rect(topleft=(self.text_x, self.text_y[1]))
         unified_rect = combo_rect.union(score_rect).inflate(25, 25)
@@ -332,16 +302,6 @@ class CurrentRound:
         if not isinstance(notes_list, list) or not all(isinstance(note, notes.Note) for note in notes_list):
                 raise TypeError("The 'notes_list' parameter must be a list of 'notes.Note' instances.")
 
-=======
-            self.notes_to_play[i].draw_rect(screen)
-        
-        screen.blit(self._combo_txt, (self.text_x, self.text_y[0]))
-        screen.blit(self._score_txt, (self.text_x, self.text_y[1]))
-        
-
-    # keep track of key_fields pressed
-    def on_key_press(self, keys, notes_list, dev=None):        
->>>>>>> main
         for key_field in self.music.playgrounds[self.active_playground].key_fields:
             if keys[key_field.key] and not key_field.pressed:
                 note_idx = key_field.rect.collidelist(notes_list)
@@ -353,7 +313,6 @@ class CurrentRound:
                         if key_field.detect_FakeNote(actual_note): 
                             self.combo = 0
                     self.combo = key_field.detect_SlowNote(actual_note, self.combo)
-<<<<<<< HEAD
                     self.points_message(actual_note, key_field)
                     
                     active_pg = self.music.playgrounds[self.active_playground]
@@ -362,9 +321,6 @@ class CurrentRound:
                     self.y_pos = pg_rect.y + (pg_rect.height - self.messages[self.i].get_height()) // 2
                     n = actual_note.calculate_points()
                     self.total_points += n*self.calculate_combo_multiplier(self.combo)
-=======
-                    self.total_points += actual_note.calculate_points()*self.calculate_combo_multiplier(self.combo)
->>>>>>> main
                     self._remaining_misses += 1
                 else:
                     if self.__dev_active: 
@@ -372,7 +328,6 @@ class CurrentRound:
                     key_field.pressed = True
                     self.combo = 0
                     self._remaining_misses -= 1
-<<<<<<< HEAD
 
     def points_message(self, actual_note, key_field):
         """
@@ -444,18 +399,6 @@ class CurrentRound:
         boolean
             A boolean indicating whether the round should end.
         """
-=======
-    
-    # just calculates the multiplier the player gets by each hit note
-    def calculate_combo_multiplier(self, combo):
-        if combo >= self._combo_mult_scores[0] and combo < self._combo_mult_scores[1]: return 1
-        elif combo >= self._combo_mult_scores[1] and combo < self._combo_mult_scores[2]: return 2
-        elif combo >= self._combo_mult_scores[2] and combo < self._combo_mult_scores[3]: return 3
-        elif combo >= self._combo_mult_scores[3]: return 4
-
-    # updates all needed objects
-    def update(self, keys, screen, resize, dev=None):
->>>>>>> main
         speed = self.speed
         size = self._screen_size
         if resize:
@@ -494,15 +437,11 @@ class CurrentRound:
                         self.combo = 0
                         self._remaining_misses -= 1
                         self.total_points -= 1
-<<<<<<< HEAD
-                    if not hasSlow: self.start_index += 1      
-=======
                     if not hasSlow: self.start_index += 1
                            
 
         if self.music.has_panning:
             self.music.update()
->>>>>>> main
 
         if self.total_points < 0: self.total_points = 0
         if self._remaining_misses <= 0: self.game_over = True

@@ -4,10 +4,6 @@ import json
 import playground as pgr
 import notes as nt
 import currentround as cr
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 
 pg_numbers = [1,1]
 pg.init()
@@ -84,8 +80,7 @@ class VoidMusic(music.Music):
         a = pg.mixer.Sound(self._file_path)
         self.length = a.get_length()
         
-    def _create_intervals(self):
-<<<<<<< HEAD
+    def create_intervals(self):
         """
         Returns a list of intervals (in miliseconds) that represent the duration of
         each note in the music. The intervals are calculated based on the BPM of
@@ -93,7 +88,7 @@ class VoidMusic(music.Music):
         """
         return []
     
-    def _create_notes(self, playgrounds):
+    def create_notes(self, playgrounds):
         """
         Generates a list of notes for the music based on the provided playgrounds.
 
@@ -108,11 +103,6 @@ class VoidMusic(music.Music):
         list
             A list of note objects created for the music.
         """
-=======
-        return []
-    
-    def _create_notes(self, playgrounds):
->>>>>>> main
         return []
 
 class PlayerMusic(music.Music):
@@ -174,9 +164,9 @@ class PlayerMusic(music.Music):
         self.multiplayer_info = [False, 1]
         self._file_path = file
         
-        self.notes_list = self._create_notes(self.playgrounds)
+        self.notes_list = self.create_notes(self.playgrounds)
         self._labels = labels
-        self.time_intervals = self._create_intervals()
+        self.time_intervals = self.create_intervals()
         
         self.total_notes = len(self.notes_list)
         self.speed = speed
@@ -189,24 +179,20 @@ class PlayerMusic(music.Music):
         self.length = a.get_length()
         
         
-    def _create_intervals(self):
-<<<<<<< HEAD
+    def create_intervals(self):
         """
         Creates a list of intervals in miliseconds, that represent the duration of
         each note in the music. The intervals are calculated based on the BPM of
         the music and the duration of each label (in miliseconds)
         """
         
-=======
->>>>>>> main
         intervals = []
         
         for i in self._labels:
             intervals.append(i*self.label_duration + self.file_delay) 
         return intervals
     
-    def _create_notes(self, playgrounds : list[pgr.Playground]):
-<<<<<<< HEAD
+    def create_notes(self, playgrounds : list[pgr.Playground]):
         """
         Generates a list of notes for the music based on the provided playgrounds.
 
@@ -221,14 +207,11 @@ class PlayerMusic(music.Music):
         list
             A list of note objects created for the music.
         """
-=======
->>>>>>> main
-        note_list = self._int_to_notes(playgrounds[0].key_fields,self._columns,self._slow_notes,self._fake_notes,self._slow_heights)
+        note_list = self.int_to_notes(playgrounds[0].key_fields,self._columns,self._slow_notes,self._fake_notes,self._slow_heights)
         return note_list
 
 
 class DevMode:
-<<<<<<< HEAD
     def __init__(self, music_name, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]],dkeys=[pg.K_LSHIFT, pg.K_q, pg.K_e, pg.K_r, pg.K_m, pg.K_LEFT, pg.K_RIGHT,
                                                                                pg.K_UP, pg.K_DOWN, pg.K_RETURN, pg.K_DELETE, pg.K_INSERT, pg.K_p], active=False, editing_music=False):
         """
@@ -276,44 +259,6 @@ class DevMode:
         self.configs = self.__read_configs()
         self.music_info = self.configs[music_name]
         
-=======
-    """
-    A class that does all the creating and editing of the custom player music
-    
-    Attributes
-    ----------
-    self.configs : dict
-        All the player musics information
-    self.music_info : dict
-        Information of current music
-    self.music_list : list
-        List containing Player and Void music
-    self.music : str
-        Music name
-    self.developer_keys : list
-        List with the keyboard keys used by edit mode
-    self.active_music_idx : int
-        Index of the active music in music list
-    self.hidden_music_idx : int
-        Index of the non-active music in music list
-    self.BPM : int
-        Music BPM
-    self.max_visible_index : int
-        Index of the last note in screen
-    self.min_visible_index : int
-        Index of first visible note in screen
-    self.round : cr.CurrentRound
-        The round the DevMode class manages    
-    """
-    
-    def __init__(self, music_name, keys=[[pg.K_d,pg.K_f,pg.K_j,pg.K_k]],dkeys=[pg.K_LSHIFT, pg.K_q, pg.K_e, pg.K_r, pg.K_m, pg.K_LEFT, pg.K_RIGHT,
-                                                                               pg.K_UP, pg.K_DOWN, pg.K_RETURN, pg.K_DELETE, pg.K_INSERT, pg.K_p], active=False, editing_music=False):
-        self.configs = self.__read_configs()
-        self.music_info = self.configs[music_name]
-        
-        if editing_music: self._edit_music(music_name)
-        if self.configs.keys().isdisjoint([music_name]): self._new_music(music_name)
->>>>>>> main
         
         self.music = music_name
         self.developer_keys = dkeys
@@ -339,9 +284,9 @@ class DevMode:
         self.round = cr.CurrentRound(self.active_music, dev=True)
     
     def _edit_music(self, name):
-<<<<<<< HEAD
         """
         Allows the user to edit an existing music, changing its file path, speed, BPM and file delay.
+        Is a deprecated method, for cli.
         
         Parameters
         ----------
@@ -349,8 +294,6 @@ class DevMode:
             Name of the music to be edited
         """
         
-=======
->>>>>>> main
         self.configs[name]["music_file"] = input("new music file path: ")
         self.configs[name]["speed"] = 10/int(input("new speed: "))
         self.configs[name]["BPM"] = int(input("new bpm: "))
@@ -358,9 +301,9 @@ class DevMode:
         self.__write_configs(self.configs)
     
     def _new_music(self, name):
-<<<<<<< HEAD
         """
         Creates a new music and adds it to the music config file.
+        Is a deprecated method, for cli.
         
         Parameters
         ----------
@@ -394,43 +337,11 @@ class DevMode:
         self.configs[name]["slow_notes"] = []
         self.configs[name]["slow_durations"] = []
         self.__write_configs(self.configs)
-=======
-            bpm = input("music bpm: ")
-            speed = input("music speed: ")
-            path = input("path (relative to the game folder lp-onbeat): ")
-            delay = input("(moment where the music actually starts, in millisenconds): ")
-            self.configs[name] = {
-            "music_file": "./",
-            "file_delay" : 0,
-            "BPM": 0,
-            "labels": [],
-            "notes": [],
-            "keyfields": [],
-            "slow_notes": [],
-            "slow_durations": [],
-            "fake_notes": [],
-            "speed": 1
-        }
-            self.configs[name]["music_file"] = path
-            self.configs[name]["speed"] = 10/int(speed)
-            self.configs[name]["keyfields"] = []
-            self.configs[name]["labels"] = []
-            self.configs[name]["file_delay"] = int(delay)
-            self.configs[name]["BPM"] = int(bpm)
-            self.configs[name]["fake_notes"] = []
-            self.configs[name]["slow_notes"] = []
-            self.configs[name]["slow_durations"] = []
-            self.__write_configs(self.configs)
->>>>>>> main
     
     def dev_shorts(self, event, notes_to_play, max_index, stop_index, music_start_pos):
         
-<<<<<<< HEAD
         """
         Handles developer shortcut keys for controlling music playback and editing notes.
-=======
-    def dev_shorts(self, event, notes_to_play, max_index, stop_index, music_start_pos):
->>>>>>> main
         
         Parameters
         ----------
@@ -541,7 +452,6 @@ class DevMode:
                 if self.editing_note: self.__change_note_type(notes_to_play)
                 
     def __round_att_update(self, music_start_pos, restart_index, decrease_stop_index):
-<<<<<<< HEAD
         """
         Updates round attributes based on music position and index flags.
 
@@ -557,8 +467,6 @@ class DevMode:
         This method resets all notes to their initial state, updates the music
         start position, and adjusts indices based on the provided flags.
         """
-=======
->>>>>>> main
         if restart_index: self.round.start_index = 0
         for note in self.round.notes_to_play:
             note.reset()
@@ -566,7 +474,6 @@ class DevMode:
         if decrease_stop_index: self.round.stop_index -= 1
     
     def __change_note_type(self, notes):
-<<<<<<< HEAD
         """
         Changes the type of a note in the music editor.
 
@@ -580,8 +487,6 @@ class DevMode:
         changes the note to a fast note.
         """
         
-=======
->>>>>>> main
         idx = self.index_selected
         current_note = notes[idx]
         speed = current_note.speed
@@ -608,7 +513,6 @@ class DevMode:
         notes[idx].ratio = current_note.ratio
             
     def __change_note_position(self, direction, notes, max_index):
-<<<<<<< HEAD
         """
         Changes the position of a note in the music editor.
 
@@ -625,8 +529,6 @@ class DevMode:
         also changes the height of the note. If the note is a fast note, it only changes the time interval of the note.
         If the note is a fake note, it does not change the position of the note.
         """
-=======
->>>>>>> main
         labels = self.music_info["labels"]
         columns = self.music_info["keyfields"]
         if len(notes) == 0: 
@@ -693,7 +595,6 @@ class DevMode:
             columns[self.index_selected] = (columns[self.index_selected] - 1) % 4
         
     def __update_configs(self, notes, idx, value, isSlow):
-<<<<<<< HEAD
         """
         Updates the configuration of the music editor when a note is swapped.
 
@@ -714,8 +615,6 @@ class DevMode:
         It swaps the note at index idx with the note at index idx + value.
         If the note is slow, it also swaps the duration of the slow note.
         """
-=======
->>>>>>> main
         swap_idx = idx + value
         if isSlow:
             slow_idx = self.music_info["slow_notes"].index(idx)
@@ -728,7 +627,6 @@ class DevMode:
         notes[idx], notes[swap_idx] = notes[swap_idx], notes[idx]
 
     def __destruct_note(self, notes : list[int]):
-<<<<<<< HEAD
         """
         Removes a note from the specified list and updates the music_info accordingly.
 
@@ -746,8 +644,6 @@ class DevMode:
         fake_notes list in the music_info.
         - The method assumes that index_selected is a valid index for the notes list.
         """
-=======
->>>>>>> main
         if len(notes) != 0 and len(notes) > self.index_selected:
             self.music_info["labels"].pop(self.index_selected)
             self.music_info["keyfields"].pop(self.index_selected)
@@ -761,7 +657,6 @@ class DevMode:
             notes.pop(self.index_selected)
 
     def __add_note(self, notes : list):
-<<<<<<< HEAD
         """
         Adds a new note to the specified list and updates the music_info accordingly.
         
@@ -777,8 +672,6 @@ class DevMode:
         - If the selected note is a SlowNote, the new note will be added after it.
         - The method assumes that index_selected is a valid index for the notes list.
         """
-=======
->>>>>>> main
         idx = self.index_selected
         if len(notes) == 0:
             new_note = nt.FastNote(self.active_music.playgrounds[0].key_fields[0])
@@ -797,7 +690,6 @@ class DevMode:
             self.music_info["keyfields"].insert(self.index_selected+1, column)
     
     def __change_selection(self, max_index, down, notes):
-<<<<<<< HEAD
         """
         Changes the selection of a note in the music editor.
 
@@ -815,8 +707,6 @@ class DevMode:
         of the DevMode object.
         """
         
-=======
->>>>>>> main
         if len(notes) == 0: 
             return
         if down: 
@@ -841,7 +731,6 @@ class DevMode:
             if isinstance(notes[self.index_selected], nt.SlowNote): notes[self.index_selected].top_selected = False
              
     def draw_selection(self, screen, notes : list[nt.Note], music_start_pos, stop_index):
-<<<<<<< HEAD
         """
         Draws and manages the selection rectangle for a note in the music editor.
 
@@ -861,8 +750,6 @@ class DevMode:
         when the selected note goes beyond the visible boundaries. Additionally, it modifies the 
         selection rectangle's shape based on the note type and selection state.
         """
-=======
->>>>>>> main
         if self.active_music.paused and len(notes) > self.index_selected:
             note = notes[self.index_selected]
             rect_bottom = note.rect.bottom
@@ -908,7 +795,6 @@ class DevMode:
                 pg.draw.rect(screen, (255,255,255), rect, width=round(note.ratio))
     
     def __read_configs(self):
-<<<<<<< HEAD
         """
         Reads the music configuration data from a JSON file.
 
@@ -920,14 +806,11 @@ class DevMode:
         dict
             The music configuration data read from the JSON file.
         """
-=======
->>>>>>> main
         with open('./src/config/music_test.json', 'r') as json_file:
             music_data = json.load(json_file)
         return music_data
     
     def __write_configs(self, music_data):
-<<<<<<< HEAD
         """
         Writes the provided music data to a JSON configuration file.
 
@@ -939,13 +822,10 @@ class DevMode:
         This method opens the 'music_test.json' file in write mode and writes the contents
         of `music_data` to it as a JSON object, overwriting any existing content.
         """
-=======
->>>>>>> main
         with open('./src/config/music_test.json', 'w') as json_file:
             json.dump(music_data, json_file)
             
     def __recording_mode(self):
-<<<<<<< HEAD
         """
         Toggles the recording mode of the music editor.
 
@@ -967,8 +847,6 @@ class DevMode:
         -------
         None
         """
-=======
->>>>>>> main
         self.__write_configs(self.configs)
         self.hidden_music_idx = self.active_music_idx
         self.active_music_idx = (self.hidden_music_idx + 1) % 2
@@ -996,7 +874,6 @@ class DevMode:
         return
         
     def on_event(self, event):
-<<<<<<< HEAD
         """
         Handles an event by invoking developer shortcuts and updating the round state.
 
@@ -1015,6 +892,7 @@ class DevMode:
         """
         self.dev_shorts(event, self.round.notes_to_play, self.round.max_index, self.round.stop_index, self.round.music_start_pos)        
         self.round.on_event(event)   
+        
     def draw(self, screen : pg.Surface, music_start_pos, font_size):
         """
         Draws the current label and "Recording" status on the screen.
@@ -1037,12 +915,6 @@ class DevMode:
         -------
         None
         """
-=======
-        self.dev_shorts(event, self.round.notes_to_play, self.round.max_index, self.round.stop_index, self.round.music_start_pos)        
-        self.round.on_event(event)
-        
-    def draw(self, screen : pg.Surface, music_start_pos, font_size):
->>>>>>> main
         krect = self.active_music.playgrounds[0].key_fields[0].rect
         a = (60000/(4*self.BPM))
         actual_label = round((pg.mixer.music.get_pos()+music_start_pos - self.music_list[1].file_delay)/a)
@@ -1052,10 +924,7 @@ class DevMode:
         if self.active_music == self.music_list[0]:
             text =  font.render("Recording", False, (220, 0, 0))
             screen.blit(text, (screen.get_width()-text.get_width() - 5, 0))    
-<<<<<<< HEAD
-=======
        
->>>>>>> main
     def create_music(self, music_start_pos, column):
         """
         Records a music column and label based on the current playback position.

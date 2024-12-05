@@ -124,7 +124,6 @@ class KeyField:
         if not keys[self.key]:
             self.pressed = False
 
-<<<<<<< HEAD
 
 class MakeSprite:
     """
@@ -219,5 +218,3 @@ class MakeSprite:
 
         scaled_sprite = pg.transform.scale(self.sprite, self.rect.size)
         display.blit(scaled_sprite, self.rect.topleft)
-=======
->>>>>>> main

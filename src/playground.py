@@ -1,11 +1,7 @@
 import pygame as pg
 import notes as nt, keyfields as kf
 
-<<<<<<< HEAD
-
-=======
 # playground takes the "box" that contains the key_fields and notes and resizes it as the screen resizes too
->>>>>>> main
 class Playground:
     def __init__(self, bottom_padding, screen_width, screen_height, black_bars=50, keys=[pg.K_s, pg.K_d, pg.K_k, pg.K_l], blank_space_percentage=0.1, pg_numbers=[1,1]):
         usable_width = screen_width-2*black_bars
@@ -99,7 +95,6 @@ class Playground:
             i.bias = bias
             i.rect.x = x
             i.rect.y = y
-<<<<<<< HEAD
 
             i.space_rect.x = x
             i.trian_rect.x = x
@@ -108,10 +103,7 @@ class Playground:
             i.shadow_sup_rect.y = y + y/50
             i.shadow_inf_rect.top = i.shadow_sup_rect.bottom
             
-            x = x + self.interval
-=======
             x = x + self._interval
->>>>>>> main
             
             i.rect.width = self.key_field_size
             i.rect.height = self.key_field_size
