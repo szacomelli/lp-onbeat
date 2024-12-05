@@ -6,6 +6,80 @@ import playground
 import devmode
 
 class CurrentRound:
+    """
+    The custom music created by the player
+    
+    Attributes
+    ----------
+    self._screen_size: list[int, int]
+    The size of the game screen, represented as (width, height).
+
+    self.active_playground: Playground
+        The currently active music playground.
+
+    self.music_start_pos: int
+        The millisecond position at which the music starts playing.
+
+    self.__dev_active: bool
+        Indicates whether the developer editing mode is active.
+
+    self.music: Music
+        The music object containing details about the music to be played.
+
+    self.speed: float
+        The speed of the music.
+
+    self.notes_to_play: list
+        A list of notes that need to be played during the round.
+
+    self.notes_interval: list[int]
+        A list of timestamps (in milliseconds) for when each note should be played.
+
+    self.start_index: int
+        The starting position in `notes_to_play` from which the round begins playing.
+
+    self.stop_index: int
+        The stopping position in `notes_to_play` at which the round ends playing.
+
+    self.max_index: int
+        The maximum index of `notes_to_play`.
+
+    self.total_points: int
+        The total score accumulated during the round.
+
+    self.combo: int
+        The current combo count for the round.
+
+    self._combo_mult_scores: list[float]
+        A list of thresholds for the combo count required to increase the combo multiplier.
+
+    self._remaining_misses: int
+        The number of notes that can be missed before the game ends.
+
+    self.game_over: bool
+        Indicates whether the current round is over.
+
+    self.text_x: int
+        The x-coordinate where all texts related to the `CurrentRound` are drawn.
+
+    self.text_y: list[int]
+        A list containing the y-coordinates for the texts related to the `CurrentRound`.
+
+    self.text_font: int
+        The font size used for displaying the texts.
+
+    self._combo_txt: str
+        A string representing the text for the round's combo.
+
+    self._score_txt: str
+        A string representing the text for the round's score.
+
+    self.text_ratio: list[float]
+        A list representing the scaling ratio for the displayed texts.
+
+    self.__switch_key: int
+        A key used to switch between music playgrounds (if available).
+    """
     def __init__(self,  music : music.Music, screen_size=[480,640], switch_key=pg.K_SPACE, dev=False):
         # basic atributtes
         self._screen_size = screen_size
