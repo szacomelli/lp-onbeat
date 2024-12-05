@@ -40,6 +40,7 @@ class GameManager:
         }        
         self.current_screen = self.screen_map["main_menu"]
         self.current_music_dev = ""
+        self.dev = False
         self.multiplayer = False
         self.is_running = False
         self.clock = None
@@ -86,7 +87,7 @@ class GameManager:
         None
         """
 
-        if dev:
+        if self.dev:
             self.dev_musica = self.current_music_dev
             self.dev = dv.DevMode(self.dev_musica)
             self.dev.round.start_round()
@@ -95,7 +96,8 @@ class GameManager:
             self.musica = self.current_music
             self.round = [ar.CurrentRound(self.musica)]
             self.round[0].start_round()
-        if self.multiplayer:
+
+        elif self.multiplayer:
             self.musica = self.current_music_multiplayer
             self.round = [ar.CurrentRound(self.musica[0]), ar.CurrentRound(self.musica[1], switch_key=pg.K_KP_ENTER)]
             self.round[0].start_round()

@@ -305,6 +305,7 @@ class MusicCatalog(Screen):
 
     def draw(self, screen):
         self.resize(screen)
+        screen.fill((0,0,0))
         screen.blit(self.imagem, (0, 0))
         screen.blit(self.loading_message, (self.width//2 - self.loading_message.get_width()//2, self.height//9 + 10))
         self.dict_buttons[self.name_player[self.index_player]].draw(screen)
@@ -358,11 +359,13 @@ class MusicCatalog(Screen):
             self.manager.define_music(self.index)
             self.manager.round_start()
             self.start_game(1)
+
         if self.dict_buttons[self.name_player[1]].is_clicked(event):
             self.manager.multiplayer = True
             self.manager.define_music(self.index)
             self.manager.round_start()
             self.start_game(1)
+
         if self.dict_buttons["back"].is_clicked(event):
             self.start_game(2)
 class Key(Screen):
@@ -586,6 +589,7 @@ class Dev(Screen):
                 self.index -= 1 
             self.draw(screen)
         if self.dict_buttons_music[f"music_{self.index}"].is_clicked(event):
+            self.manager.dev = True
             self.manager.current_music_dev = self.dict_buttons_music[f"music_{self.index}"].text
             self.manager.round_start()
             self.start_game(1)
