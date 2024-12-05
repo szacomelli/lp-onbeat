@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 import pygame as pg
-from src.screens import Button, MainMenu, Settings
+from src.screens import Button, MainMenu, Settings, MusicCatalog
 
 class TestButton(unittest.TestCase):
     def setUp(self):
@@ -182,6 +182,97 @@ class TestSettings(unittest.TestCase):
 
         self.settings.on_event(event, self.screen)
         self.manager.change_state.assert_called_once_with("main_menu")
+
+    class TestMusicCatalog(unittest.TestCase):
+        def setUp(self):
+            """Configura o ambiente de teste."""
+            pg.init()
+            self.screen = pg.Surface((800, 600))
+            self.manager = MagicMock()
+            self.manager.music_names = ["Music1", "Music2", "Music3"]
+            self.manager.language = "en"
+            self.manager.define_music = MagicMock()
+            self.manager.round_start = MagicMock()
+            self.manager.change_state = MagicMock()
+            
+            # Inicializa o catálogo de músicas
+            self.music_catalog = MusicCatalog(button_width=200, button_height=50, manager=self.manager)
+
+        def tearDown(self):
+            """Finaliza o ambiente após os testes."""
+            pg.quit()
+
+        def test_initialization(self):
+            """Testa se os botões e atributos foram inicializados corretamente."""
+            self.assertEqual(len(self.music_catalog.dict_buttons_music), len(self.manager.music_names))
+            self.assertIn("back", self.music_catalog.dict_buttons)
+            self.assertIn("right1", self.music_catalog.dict_buttons)
+            self.assertIn("left1", self.music_catalog.dict_buttons)
+            self.assertEqual(self.music_catalog.index, 0)
+            self.assertEqual(self.music_catalog.index_player, 0)
+
+        def test_resize(self):
+            """Testa se os botões são redimensionados corretamente."""
+            self.music_catalog.resize(self.screen)
+            back_button = self.music_catalog.dict_buttons["back"]
+            self.assertEqual(back_button.rect.x, self.screen.get_width() // 2 - self.music_catalog.button_width // 2)
+            self.assertEqual(back_button.rect.y, (self.screen.get_height() // 9) + 2 * (self.music_catalog.button_height + 10) + 120)
+
+        def test_update_buttons(self):
+            """Testa se os textos dos botões são atualizados com base no idioma."""
+            new_labels = ["Voltar", "1 Jogador", "2 Jogadores"]
+            self.music_catalog.translate = MagicMock(side_effect=[new_labels, new_labels])
+            self.music_catalog.update(self.screen)
+
+            self.assertEqual(self.music_catalog.dict_buttons["back"].text, "Voltar")
+            self.assertEqual(self.music_catalog.dict_buttons[self.music_catalog.name_player[0]].text, "1 Jogador")
+            self.assertEqual(self.music_catalog.dict_buttons[self.music_catalog.name_player[1]].text, "2 Jogadores")
+
+        def test_event_navigation_right1(self):
+            """Testa a navegação para a próxima música."""
+            self.music_catalog.index = 0
+            self.music_catalog.dict_buttons["right1"].is_clicked = MagicMock(return_value=True)
+            event = pg.event.Event(pg.MOUSEBUTTONDOWN, {"pos": (150, 130), "button": 1})
+
+            self.music_catalog.on_event(event, self.screen)
+            self.assertEqual(self.music_catalog.index, 1)
+
+        def test_event_navigation_left1(self):
+            """Testa a navegação para a música anterior."""
+            self.music_catalog.index = 1
+            self.music_catalog.dict_buttons["left1"].is_clicked = MagicMock(return_value=True)
+            event = pg.event.Event(pg.MOUSEBUTTONDOWN, {"pos": (150, 130), "button": 1})
+
+            self.music_catalog.on_event(event, self.screen)
+            self.assertEqual(self.music_catalog.index, 0)
+
+        def test_event_player_toggle(self):
+            """Testa a alternância entre os modos de jogador."""
+            self.music_catalog.index_player = 0
+            self.music_catalog.dict_buttons["right2"].is_clicked = MagicMock(return_value=True)
+            event = pg.event.Event(pg.MOUSEBUTTONDOWN, {"pos": (150, 130), "button": 1})
+
+            self.music_catalog.on_event(event, self.screen)
+            self.assertEqual(self.music_catalog.index_player, 1)
+
+        def test_event_start_game(self):
+            """Testa o início do jogo com as configurações corretas."""
+            self.music_catalog.index = 2
+            self.music_catalog.dict_buttons[self.music_catalog.name_player[0]].is_clicked = MagicMock(return_value=True)
+            event = pg.event.Event(pg.MOUSEBUTTONDOWN, {"pos": (150, 130), "button": 1})
+
+            self.music_catalog.on_event(event, self.screen)
+            self.manager.define_music.assert_called_once_with(2)
+            self.manager.round_start.assert_called_once()
+            self.manager.change_state.assert_called_once_with("game")
+
+        def test_event_back(self):
+            """Testa o retorno ao menu principal."""
+            self.music_catalog.dict_buttons["back"].is_clicked = MagicMock(return_value=True)
+            event = pg.event.Event(pg.MOUSEBUTTONDOWN, {"pos": (150, 130), "button": 1})
+
+            self.music_catalog.on_event(event, self.screen)
+            self.manager.change_state.assert_called_once_with("main_menu")
 
 if __name__ == "__main__":
     unittest.main()
