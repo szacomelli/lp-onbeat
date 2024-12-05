@@ -228,7 +228,7 @@ class ItaloMusic(Music):
                          12500, 12633, 12766, 13000, 13333, 13666, 14000, 16000, 16250, 16500, 
                          16633, 16766, 17000, 17333, 17666, 18000, 18250, 18500, 18633, 18766, 
                          19000, 19333, 19666, 20000, 20250, 20500, 20633, 20766, 21000, 21333, 
-                         21666, 22000, 22500, 23500, 24000, 24250, 24500, 24633, 24766, 25000, 
+                         21666, 22000, 23000, 23500, 24000, 24250, 24500, 24633, 24766, 25000, 
                          25333, 25666, 26000, 26250, 26500, 26750, 26875, 27000, 27125, 27250, 
                          27375, 27500, 27750, 28000, 28250, 28500, 28750, 28875, 29250, 29375, 
                          29500, 29750, 29875, 30000, 30250, 30500, 30875, 31000, 31250, 31375, 
@@ -450,7 +450,7 @@ class StakesMusic(Music):
         self.playgrounds = [pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers),
                             pgr.Playground(50,640,480,keys=keys[0], blank_space_percentage=0.1,pg_numbers=pg_numbers2)]
         self.speed = speed
-        self.notes_list = self._create_notes(self.playgrounds)
+        self.notes_list = self.create_notes(self.playgrounds)
         self.total_notes = len(self.notes_list)
            
     def create_intervals(self):        

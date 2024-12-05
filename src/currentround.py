@@ -267,15 +267,17 @@ class CurrentRound:
         combo_rect = self._combo_txt.get_rect(topleft=(self.text_x, self.text_y[0]))
         score_rect = self._score_txt.get_rect(topleft=(self.text_x, self.text_y[1]))
         unified_rect = combo_rect.union(score_rect).inflate(25, 25)
-        pg.draw.rect(screen, (150, 80, 180), unified_rect)
+        
             
-        screen.blit(self._combo_txt, (self.text_x, self.text_y[0]))
-        screen.blit(self._score_txt, (self.text_x, self.text_y[1]))
+        
         screen.blit(self.messages[self.i], (self.x_pos, self.y_pos))
         
         for playground in self.music.playgrounds:
             playground.make_border(screen)
         
+        pg.draw.rect(screen, (150, 80, 180), unified_rect)
+        screen.blit(self._combo_txt, (self.text_x, self.text_y[0]))
+        screen.blit(self._score_txt, (self.text_x, self.text_y[1]))
 
     def on_key_press(self, keys, notes_list, dev = None):        
         """

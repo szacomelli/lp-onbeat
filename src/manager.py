@@ -92,7 +92,7 @@ class GameManager:
             self.dev = dv.DevMode(self.dev_musica)
             self.dev.round.start_round()
         
-        if not self.multiplayer:
+        elif not self.multiplayer:
             self.musica = self.current_music
             self.round = [ar.CurrentRound(self.musica)]
             self.round[0].start_round()
