@@ -5,46 +5,84 @@ import playground
 import devmode
 import os
 
-class CurrentRound:
+class CurrentRound:       
 
     def __init__(self,  music : music.Music, screen_size=[480,640], switch_key=pg.K_SPACE, dev=False):
-        # basic atributtes
         """
-        Creates a new instance of CurrentRound, which will be responsible for managing one round of the game.
+        A class that manages a "round" of the game (that is, all the events that happens when a music is playing)
+        
+        Attributes
+        ----------
+        self._screen_size: list[int, int]
+        The size of the game screen, represented as (width, height).
 
-        Parameters:
-        music (music.Music): The music to be played in this round.
-        screen_size (list): A list containing width and height of the screen.
-        switch_key (int): The key that should be used to switch between playgrounds.
-        dev (bool): A boolean indicating if the dev mode should be enabled.
+        self.active_playground: Playground
+            The currently active music playground.
 
-        Attributes:
-        _screen_size (list): A list containing width and height of the screen.
-        active_playground (int): An integer indicating which playground is currently active.
-        music_start_pos (int): An integer indicating the current position in the music.
-        __dev_active (bool): A boolean indicating if the dev mode should be enabled.
-        music (music.Music): The music to be played in this round.
-        speed (int): An integer indicating the speed of the notes.
-        notes_to_play (list): A list containing all the notes to be played in this round.
-        notes_interval (list): A list containing the time intervals between each note.
-        start_index (int): An integer indicating which note should be the first one to be played.
-        stop_index (int): An integer indicating which note should be the last one to be played.
-        max_index (int): An integer indicating the last note to be played.
-        font (pg.font.Font): A font object to be used for rendering the text.
-        total_points (int): The total points earned in this round.
-        combo (int): The current combo.
-        _combo_mult_scores (list): A list containing the score multipliers for each combo level.
-        _remaining_misses (int): An integer indicating how many misses are left before the game is over.
-        game_over (bool): A boolean indicating if the game is over.
-        text_x (int): The x position of the text.
-        text_y (list): A list containing the y positions of the text.
-        text_font (int): An integer indicating the font size of the text.
-        combo_txt (pg.Surface): A surface containing the rendered text of the combo.
-        score_txt (pg.Surface): A surface containing the rendered text of the score.
-        text_ratio (list): A list containing the width and height ratio of the text.
-        switch_key (int): The key that should be used to switch between playgrounds.
+        self.music_start_pos: int
+            The millisecond position at which the music starts playing.
 
+        self.__dev_active: bool
+            Indicates whether the developer editing mode is active.
+
+        self.music: Music
+            The music object containing details about the music to be played.
+
+        self.speed: float
+            The speed of the music.
+
+        self.notes_to_play: list
+            A list of notes that need to be played during the round.
+
+        self.notes_interval: list[int]
+            A list of timestamps (in milliseconds) for when each note should be played.
+
+        self.start_index: int
+            The starting position in `notes_to_play` from which the round begins playing.
+
+        self.stop_index: int
+            The stopping position in `notes_to_play` at which the round ends playing.
+
+        self.max_index: int
+            The maximum index of `notes_to_play`.
+
+        self.total_points: int
+            The total score accumulated during the round.
+
+        self.combo: int
+            The current combo count for the round.
+
+        self._combo_mult_scores: list[float]
+            A list of thresholds for the combo count required to increase the combo multiplier.
+
+        self._remaining_misses: int
+            The number of notes that can be missed before the game ends.
+
+        self.game_over: bool
+            Indicates whether the current round is over.
+
+        self.text_x: int
+            The x-coordinate where all texts related to the `CurrentRound` are drawn.
+
+        self.text_y: list[int]
+            A list containing the y-coordinates for the texts related to the `CurrentRound`.
+
+        self.text_font: int
+            The font size used for displaying the texts.
+
+        self._combo_txt: str
+            A string representing the text for the round's combo.
+
+        self._score_txt: str
+            A string representing the text for the round's score.
+
+        self.text_ratio: list[float]
+            A list representing the scaling ratio for the displayed texts.
+
+        self.__switch_key: int
+            A key used to switch between music playgrounds (if available).
         """
+        
         if not isinstance(screen_size, list) or len(screen_size) != 2 or not all(isinstance(dim, int) for dim in screen_size):
             raise ValueError("The 'screen_size' parameter must be a list with two integers: [width, height].")
         if not isinstance(switch_key, int):
@@ -52,82 +90,7 @@ class CurrentRound:
         if not isinstance(dev, bool):
             raise TypeError("The 'dev' parameter must be a boolean.")
         
-
-    """
-    The custom music created by the player
-    
-    Attributes
-    ----------
-    self._screen_size: list[int, int]
-    The size of the game screen, represented as (width, height).
-
-    self.active_playground: Playground
-        The currently active music playground.
-
-    self.music_start_pos: int
-        The millisecond position at which the music starts playing.
-
-    self.__dev_active: bool
-        Indicates whether the developer editing mode is active.
-
-    self.music: Music
-        The music object containing details about the music to be played.
-
-    self.speed: float
-        The speed of the music.
-
-    self.notes_to_play: list
-        A list of notes that need to be played during the round.
-
-    self.notes_interval: list[int]
-        A list of timestamps (in milliseconds) for when each note should be played.
-
-    self.start_index: int
-        The starting position in `notes_to_play` from which the round begins playing.
-
-    self.stop_index: int
-        The stopping position in `notes_to_play` at which the round ends playing.
-
-    self.max_index: int
-        The maximum index of `notes_to_play`.
-
-    self.total_points: int
-        The total score accumulated during the round.
-
-    self.combo: int
-        The current combo count for the round.
-
-    self._combo_mult_scores: list[float]
-        A list of thresholds for the combo count required to increase the combo multiplier.
-
-    self._remaining_misses: int
-        The number of notes that can be missed before the game ends.
-
-    self.game_over: bool
-        Indicates whether the current round is over.
-
-    self.text_x: int
-        The x-coordinate where all texts related to the `CurrentRound` are drawn.
-
-    self.text_y: list[int]
-        A list containing the y-coordinates for the texts related to the `CurrentRound`.
-
-    self.text_font: int
-        The font size used for displaying the texts.
-
-    self._combo_txt: str
-        A string representing the text for the round's combo.
-
-    self._score_txt: str
-        A string representing the text for the round's score.
-
-    self.text_ratio: list[float]
-        A list representing the scaling ratio for the displayed texts.
-
-    self.__switch_key: int
-        A key used to switch between music playgrounds (if available).
-    """
-    def __init__(self,  music : music.Music, screen_size=[480,640], switch_key=pg.K_SPACE, dev=False):
+        
         # basic atributtes
 
         self._screen_size = screen_size

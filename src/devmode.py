@@ -68,7 +68,7 @@ class VoidMusic(music.Music):
         self._file_path = file
         self.notes_list = []
         self.labels = []
-        self._columns = []
+        self.columns = []
         self.time_intervals = []
         self.multiplayer_info = [False, 1]
         self.total_notes = 0
@@ -675,20 +675,23 @@ class DevMode:
         """
         idx = self.index_selected
         if len(notes) == 0:
-            new_note = nt.FastNote(self.active_music.playgrounds[0].key_fields[0])
+            new_note = nt.FastNote(self.active_music.playgrounds[0].key_fields[0], 0)
             label = round(pg.mixer.music.get_pos()/self.active_music.label_duration)
             new_note.time_interval = label*self.active_music.label_duration
             notes.insert(0, new_note)
             self.music_info["labels"].insert(0, label)
             self.music_info["keyfields"].insert(0, 0)
+            self.round.max_index += 1
         else:
-            new_note = nt.FastNote(notes[self.index_selected].field)
+            field_id = self.active_music.playgrounds[0].key_fields.index(notes[self.index_selected].field)
+            new_note = nt.FastNote(notes[self.index_selected].field, field_id)
             new_note.time_interval = notes[self.index_selected].time_interval + self.music_list[1].label_duration
             notes.insert(self.index_selected + 1, new_note)
             label = new_note.time_interval/self.music_list[1].label_duration
             self.music_info["labels"].insert(self.index_selected+1, label)
             column = self.music_info["keyfields"][idx]
             self.music_info["keyfields"].insert(self.index_selected+1, column)
+            self.round.max_index += 1
     
     def __change_selection(self, max_index, down, notes):
         """

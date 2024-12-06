@@ -118,6 +118,17 @@ class Music:
         
         if self.has_panning: self._channel.play(self._song)
         
+    def stop_music(self):
+        """
+        Stops the music file associated with this instance. 
+        
+        Returns
+        -------
+        None
+        """
+        pg.mixer.music.stop()
+        if self.has_panning: self._channel.stop()
+        
     # the delay is how many miliseconds had elapsed before the song started playing
     def get_music_delay(self):
         """
