@@ -12,7 +12,7 @@ python3 src/onbeat.py
 
 ## How to play
 ### Single and Multiplayer modes
-Use the standard keys or change them to your desire. You can see and edit them in the setting tab.
+Use the standard keys or change them to your desire. You can see and edit them in the setting tab. In ItaloMusic, use `Space` for Player 1 and `Numpad Enter` for Player 2 to switch between fields. 
 ### How to play the edit mode
 In the edit mode, there are several new features and keys.
 - Pause/unpause: left shift
