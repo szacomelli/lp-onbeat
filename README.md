@@ -28,3 +28,8 @@ In the edit mode, there are several new features and keys.
 - Insert a note (when paused): Insert key
 - Enter recording mode: M key
 In recording mode, you can press the keys in the time you want them to appear in the music.
+
+
+## Update:
+
+This is a really simple and bugged version. If you are reading this and want to try the game, know that a new (and more well-ended) version is being developed: [love-onbeat](https://github.com/szacomelli/love-onbeat).
